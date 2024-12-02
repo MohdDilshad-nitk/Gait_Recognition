@@ -10,87 +10,59 @@ import random
 import os
 from datetime import datetime
 
-# class TemporalAugmenter:
-#     def __init__(
-#         self,
-#         crop_ratio_range=(0.8, 0.9),
-#         mask_ratio_range=(0.1, 0.2),
-#         min_sequence_length=16
-#     ):
-#         """
-#         Initialize temporal augmentation parameters
-
-#         Args:
-#             crop_ratio_range (tuple): Range for random crop ratio
-#             mask_ratio_range (tuple): Range for random masking ratio
-#             min_sequence_length (int): Minimum sequence length after cropping
-#         """
-#         self.crop_ratio_range = crop_ratio_range
-#         self.mask_ratio_range = mask_ratio_range
-#         self.min_sequence_length = min_sequence_length
-
-#     def random_temporal_crop(
-#         self,
-#         sequence: torch.Tensor,
-#         attention_mask: torch.Tensor = None
-#     ) -> Tuple[torch.Tensor, torch.Tensor]:
-#         """Apply random temporal cropping to sequence"""
-#         seq_length = sequence.size(1)
-
-#         # Determine crop size
-#         min_ratio, max_ratio = self.crop_ratio_range
-#         crop_ratio = random.uniform(min_ratio, max_ratio)
-#         crop_size = max(int(seq_length * crop_ratio), self.min_sequence_length)
-
-#         # Random start point
-#         max_start = seq_length - crop_size
-#         start_idx = random.randint(0, max_start)
-#         end_idx = start_idx + crop_size
-
-#         # Apply crop
-#         cropped_sequence = sequence[:, start_idx:end_idx]
-
-#         if attention_mask is not None:
-#             cropped_mask = attention_mask[:, start_idx:end_idx]
-#             return cropped_sequence, cropped_mask
-
-#         return cropped_sequence, None
-
-#     def random_temporal_mask(
-#         self,
-#         sequence: torch.Tensor,
-#         attention_mask: torch.Tensor = None
-#     ) -> Tuple[torch.Tensor, torch.Tensor]:
-#         """Apply random temporal masking to sequence"""
-#         seq_length = sequence.size(1)
-
-#         # Determine number of segments to mask
-#         min_ratio, max_ratio = self.mask_ratio_range
-#         mask_ratio = random.uniform(min_ratio, max_ratio)
-#         num_masks = max(1, int(seq_length * mask_ratio))
-
-#         # Create copy of sequence for masking
-#         masked_sequence = sequence.clone()
-#         if attention_mask is not None:
-#             new_attention_mask = attention_mask.clone()
-
-#         # Apply random masks
-#         for _ in range(num_masks):
-#             # Random mask length between 1 and 5 frames
-#             mask_length = random.randint(1, min(5, seq_length // 10))
-#             start_idx = random.randint(0, seq_length - mask_length)
-#             end_idx = start_idx + mask_length
-
-#             # Apply mask (set to zeros)
-#             masked_sequence[:, start_idx:end_idx] = 0
-
-#             if attention_mask is not None:
-#                 new_attention_mask[:, start_idx:end_idx] = 0
-
-#         if attention_mask is not None:
-#             return masked_sequence, new_attention_mask
-
-#         return masked_sequence, None
+class RotaryPositionalEmbedding(nn.Module):
+    def __init__(self, dim: int):
+        """
+        Rotary Positional Encoding (RoPE)
+        
+        Args:
+            dim (int): Dimension of the embedding
+        """
+        super().__init__()
+        self.dim = dim
+        
+    def _rotate_half(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Rotate the last dimension of the input tensor
+        
+        Args:
+            x (torch.Tensor): Input tensor
+        
+        Returns:
+            torch.Tensor: Rotated tensor
+        """
+        x1, x2 = x[..., :self.dim // 2], x[..., self.dim // 2:]
+        return torch.cat((-x2, x1), dim=-1)
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Apply rotary positional encoding to the input tensor
+        
+        Args:
+            x (torch.Tensor): Input tensor of shape (..., seq_len, dim)
+        
+        Returns:
+            torch.Tensor: Positionally encoded tensor
+        """
+        seq_len = x.size(1)
+        
+        # Generate frequencies
+        inv_freq = 1. / (10000 ** (torch.arange(0., self.dim, 2., device=x.device) / self.dim))
+        
+        # Create position embeddings
+        position = torch.arange(seq_len, device=x.device).unsqueeze(1).float()
+        sinusoid_inp = torch.einsum("i,j->ij", position, inv_freq)
+        emb = torch.cat((sinusoid_inp.sin(), sinusoid_inp.cos()), dim=-1)
+        emb = emb.to(dtype=x.dtype, device=x.device)
+        
+        # Reshape embeddings to match input tensor
+        rotary_dim = emb.shape[-1]
+        emb = emb[..., :rotary_dim]
+        
+        # Apply rotation to the input tensor
+        rot_x = x * emb[..., :self.dim].cos() + self._rotate_half(x) * emb[..., :self.dim].sin()
+        
+        return rot_x
 
 
 
@@ -135,14 +107,16 @@ class SkeletonTransformer(nn.Module):
         num_encoder_layers: int = 6,
         dim_feedforward: int = 2048,
         dropout: float = 0.1,
-        num_classes: int = None
+        num_classes: int = None,
+        rope: bool = False
     ):
         super().__init__()
 
         self.d_model = d_model
         self.embedding = SkeletonEmbedding(d_model)
-        # print(self.embedding.shape)
-        self.pos_encoder = PositionalEncoding(d_model)
+        
+        # self.pos_encoder = PositionalEncoding(d_model)
+        self.pos_encoder = RotaryPositionalEmbedding(d_model) if rope else PositionalEncoding(d_model)
 
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,

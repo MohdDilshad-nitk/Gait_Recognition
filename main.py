@@ -81,7 +81,8 @@ model = SkeletonTransformer(
     num_encoder_layers=1,
     dim_feedforward=256,
     dropout=0.2,
-    num_classes=164
+    num_classes=164,
+    rope=True
 )
 
 trainer = SkeletonTransformerTrainer(

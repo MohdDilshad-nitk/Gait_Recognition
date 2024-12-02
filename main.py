@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import torch
 
+from Transformer.contrastive_trainer import ContSkeletonTransformerTrainer
 from data_preprocessing.kgdb_to_csv import process_skeleton_data
 from data_preprocessing.data_augmentation import augment_skeleton_data
 from data_loaders.train_test_val_loader import create_fixed_splits
@@ -92,13 +93,25 @@ trainer = SkeletonTransformerTrainer(
     save_dir=trained_models_dir
 )
 
+contrastive_trainer = ContSkeletonTransformerTrainer(
+    model=model,
+    train_loader=train_loader,
+    val_loader=val_loader,
+    save_dir=trained_models_dir
+)
+
 print("\n\nCreated model and model trainer...\n\n")
 
 
 
 # Train and save model
-trainer.train(
-    num_epochs=60,
+# trainer.train(
+#     num_epochs=60,
+#     resume_path=None  # Set to checkpoint path to resume training
+# )
+
+contrastive_trainer.train(
+    num_epochs=1,
     resume_path=None  # Set to checkpoint path to resume training
 )
 

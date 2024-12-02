@@ -68,24 +68,6 @@ class SkeletonTransformerTrainer:
             'val_accuracy': correct / max(total, 1)
         }
 
-    def augment_sequence(
-        self,
-        sequence: torch.Tensor,
-        attention_mask: torch.Tensor = None
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Apply temporal augmentations to sequence"""
-        # First apply random crop
-        sequence, attention_mask = self.augmenter.random_temporal_crop(
-            sequence, attention_mask
-        )
-
-        # Then apply random masking
-        sequence, attention_mask = self.augmenter.random_temporal_mask(
-            sequence, attention_mask
-        )
-
-        return sequence, attention_mask
-
     def save_checkpoint(
         self,
         epoch: int,
@@ -141,9 +123,6 @@ class SkeletonTransformerTrainer:
         correct = 0
         total = 0
 
-        # Add progress bar for training batches
-        # train_pbar = tqdm(self.train_loader, desc='Training', leave=False)
-
         for batch in self.train_loader:
             sequence = batch['sequence'].to(self.device)
             attention_mask = batch['attention_mask'].to(self.device)
@@ -164,10 +143,6 @@ class SkeletonTransformerTrainer:
 
             # Update progress bar with current loss and accuracy
             current_accuracy = correct / max(total, 1)
-            # train_pbar.set_postfix({
-            #     'loss': f'{cls_loss.item():.4f}',
-            #     'accuracy': f'{current_accuracy:.4f}'
-            # })
 
         return {
             'train_cls_loss': total_cls_loss / len(self.train_loader),
@@ -180,20 +155,12 @@ class SkeletonTransformerTrainer:
             start_epoch = self.load_checkpoint(resume_path)
             print(f"Resumed training from epoch {start_epoch}")
 
-        # Add progress bar for epochs
-        # epoch_pbar = tqdm(range(start_epoch, num_epochs), desc='Training Progress', position=0)
 
         for epoch in range(start_epoch, num_epochs):
             train_metrics = self.train_epoch()
             val_metrics = self.validate()
 
             metrics = {**train_metrics, **val_metrics}
-
-            # Update epoch progress bar with current metrics
-            # epoch_pbar.set_postfix({
-            #     'train_acc': f"{train_metrics['train_accuracy']:.4f}",
-            #     'val_acc': f"{val_metrics['val_accuracy']:.4f}"
-            # })
 
             # Check if this is the best model
             is_best = False

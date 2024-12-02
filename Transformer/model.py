@@ -10,38 +10,38 @@ import random
 import os
 from datetime import datetime
 
-class RotaryPositionalEmbedding(nn.Module):
-    def __init__(self, d_model, max_seq_len: int = 5000):
-        super(RotaryPositionalEmbedding, self).__init__()
+# class RotaryPositionalEmbedding(nn.Module):
+#     def __init__(self, d_model, max_seq_len: int = 5000):
+#         super(RotaryPositionalEmbedding, self).__init__()
 
-        # Create a rotation matrix.
-        self.rotation_matrix = torch.zeros(d_model, d_model, device=torch.device("cuda"))
-        for i in range(d_model):
-            for j in range(d_model):
-                self.rotation_matrix[i, j] = torch.cos(i * j * 0.01)
+#         # Create a rotation matrix.
+#         self.rotation_matrix = torch.zeros(d_model, d_model, device=torch.device("cuda"))
+#         for i in range(d_model):
+#             for j in range(d_model):
+#                 self.rotation_matrix[i, j] = torch.cos(i * j * 0.01)
 
-        # Create a positional embedding matrix.
-        self.positional_embedding = torch.zeros(max_seq_len, d_model, device=torch.device("cuda"))
-        for i in range(max_seq_len):
-            for j in range(d_model):
-                self.positional_embedding[i, j] = torch.cos(i * j * 0.01)
+#         # Create a positional embedding matrix.
+#         self.positional_embedding = torch.zeros(max_seq_len, d_model, device=torch.device("cuda"))
+#         for i in range(max_seq_len):
+#             for j in range(d_model):
+#                 self.positional_embedding[i, j] = torch.cos(i * j * 0.01)
 
-    def forward(self, x):
-        """
-        Args:
-            x: A tensor of shape (batch_size, seq_len, d_model).
+#     def forward(self, x):
+#         """
+#         Args:
+#             x: A tensor of shape (batch_size, seq_len, d_model).
 
-        Returns:
-            A tensor of shape (batch_size, seq_len, d_model).
-        """
+#         Returns:
+#             A tensor of shape (batch_size, seq_len, d_model).
+#         """
 
-        # Add the positional embedding to the input tensor.
-        x += self.positional_embedding
+#         # Add the positional embedding to the input tensor.
+#         x += self.positional_embedding
 
-        # Apply the rotation matrix to the input tensor.
-        x = torch.matmul(x, self.rotation_matrix)
+#         # Apply the rotation matrix to the input tensor.
+#         x = torch.matmul(x, self.rotation_matrix)
 
-        return x
+#         return x
 
 # class RotaryPositionalEmbedding(nn.Module):
 #     def __init__(self, dim: int):
@@ -98,6 +98,43 @@ class RotaryPositionalEmbedding(nn.Module):
 #         return rot_x
 
 
+import torch
+import torch.nn as nn
+
+class RotaryPositionalEmbedding(nn.Module):
+    def __init__(self, d_model, max_seq_len: int = 5000):
+        super(RotaryPositionalEmbedding, self).__init__()
+
+        # Create a rotation matrix using tensor operations
+        i = torch.arange(d_model, dtype=torch.float32).unsqueeze(1)
+        j = torch.arange(d_model, dtype=torch.float32).unsqueeze(0)
+        self.rotation_matrix = torch.cos(i * j * 0.01)
+
+        # Create a positional embedding matrix using tensor operations
+        position = torch.arange(max_seq_len, dtype=torch.float32).unsqueeze(1)
+        div_term = torch.arange(0, d_model, dtype=torch.float32)
+        self.positional_embedding = torch.cos(position * div_term * 0.01)
+
+        # Move to cuda if available
+        self.rotation_matrix = self.rotation_matrix.cuda()
+        self.positional_embedding = self.positional_embedding.cuda()
+
+    def forward(self, x):
+        """
+        Args:
+            x: A tensor of shape (batch_size, seq_len, d_model).
+
+        Returns:
+            A tensor of shape (batch_size, seq_len, d_model).
+        """
+        # Add the positional embedding to the input tensor
+        seq_len = x.size(1)
+        x += self.positional_embedding[:seq_len]
+
+        # Apply the rotation matrix to the input tensor
+        x = torch.matmul(x, self.rotation_matrix)
+
+        return x
 
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model: int, max_len: int = 5000):
@@ -141,7 +178,7 @@ class SkeletonTransformer(nn.Module):
         dim_feedforward: int = 2048,
         dropout: float = 0.1,
         num_classes: int = None,
-        rope: bool = False
+        rope: bool = False,
     ):
         super().__init__()
 
@@ -198,7 +235,8 @@ class SkeletonTransformer(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        attention_mask: torch.Tensor = None
+        attention_mask: torch.Tensor = None,
+        return_features: bool = False
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         sequence_repr = self.encode(x, attention_mask)
         # projection = self.projection(sequence_repr)  # ???
@@ -208,4 +246,6 @@ class SkeletonTransformer(nn.Module):
         else:
             logits = None
 
+        if return_features:
+            return logits, sequence_repr
         return logits

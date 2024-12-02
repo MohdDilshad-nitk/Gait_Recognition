@@ -5,7 +5,7 @@ import random
 import re
 
 class SkeletonDataAugmenter:
-    def __init__(self, processed_data_dir):
+    def __init__(self, processed_data_dir, output_dir):
         """
         Initialize the skeleton data augmenter
 
@@ -13,6 +13,7 @@ class SkeletonDataAugmenter:
             processed_data_dir (str): Directory containing the processed CSV files
         """
         self.processed_data_dir = Path(processed_data_dir)
+        self.output_dir = Path(output_dir)
         self.metadata = pd.read_csv(self.processed_data_dir / 'metadata.csv')
 
     def normalize_to_range(self, sequence):
@@ -141,6 +142,11 @@ class SkeletonDataAugmenter:
             max_attempts = num_augmentations * 2  # Allow some failed attempts
             attempts = 0
 
+            #save the original file as well in output folder
+            original_file_name = f"{person_id}_{row['sequence_id']}.csv"
+            original_file_path = self.output_dir / original_file_name
+            original_sequence.to_csv(original_file_path, index=False)
+
             while aug_count < num_augmentations and attempts < max_attempts:
                 attempts += 1
 
@@ -159,7 +165,9 @@ class SkeletonDataAugmenter:
 
                 # Create filename with incremental number
                 aug_filename = f"{person_id}_{next_seq_num:02d}.csv"
-                aug_filepath = self.processed_data_dir / aug_filename
+                # aug_filepath = self.processed_data_dir / aug_filename
+                aug_filepath = self.output_dir / aug_filename
+
 
                 # Save augmented sequence
                 augmented.to_csv(aug_filepath, index=False)
@@ -180,9 +188,10 @@ class SkeletonDataAugmenter:
         augmented_metadata_df = pd.DataFrame(augmented_metadata)
         original_metadata = pd.read_csv(self.processed_data_dir / 'metadata.csv')
         updated_metadata = pd.concat([original_metadata, augmented_metadata_df], ignore_index=True)
-        updated_metadata.to_csv(self.processed_data_dir / 'metadata.csv', index=False)
+        # updated_metadata.to_csv(self.processed_data_dir / 'metadata.csv', index=False)
+        updated_metadata.to_csv(self.output_dir / 'metadata.csv', index=False)
 
-def augment_skeleton_data(processed_data_dir, num_augmentations=10):
+def augment_skeleton_data(processed_data_dir, output_dir, num_augmentations=10):
     """
     Convenience function to augment skeleton data
 
@@ -190,8 +199,9 @@ def augment_skeleton_data(processed_data_dir, num_augmentations=10):
         processed_data_dir (str): Directory containing processed CSV files
         num_augmentations (int): Number of augmentations per sequence
     """
-    augmenter = SkeletonDataAugmenter(processed_data_dir)
+    augmenter = SkeletonDataAugmenter(processed_data_dir, output_dir)
     augmenter.generate_augmented_sequences(num_augmentations)
+    return output_dir
 
 
 

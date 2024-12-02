@@ -199,6 +199,9 @@ def augment_skeleton_data(processed_data_dir, output_dir, num_augmentations=10):
         processed_data_dir (str): Directory containing processed CSV files
         num_augmentations (int): Number of augmentations per sequence
     """
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    
     augmenter = SkeletonDataAugmenter(processed_data_dir, output_dir)
     augmenter.generate_augmented_sequences(num_augmentations)
     return output_dir

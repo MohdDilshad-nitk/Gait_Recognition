@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from scipy.signal import savgol_filter, argrelextrema
+from pathlib import Path
 
 
 metadata_list = []
@@ -73,7 +74,7 @@ def extract_gait_cycles(input_file, output_dir):
         cycle.to_csv(output_file, index=False)
 
 
-def extract_gait_cycles_from_csv(input_file, output_dir):
+def extract_gait_cycles_from_csv(input_dir, output_dir):
   for filename in os.listdir(input_dir):
     if filename.endswith('.csv') and filename != 'metadata.csv':
         input_file = os.path.join(input_dir, filename)

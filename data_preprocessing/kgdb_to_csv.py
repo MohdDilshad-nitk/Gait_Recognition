@@ -43,7 +43,7 @@ class SkeletonDataProcessor:
 
     def normalize_sequence(self, sequence):
         """Same as your original implementation"""
-        hip_center_idx = 8
+        hip_center_idx = 11
         normalized_sequence = sequence.copy()
 
         for frame_idx in range(sequence.shape[0]):
@@ -123,3 +123,28 @@ def process_skeleton_data(data_dir, output_dir):
 # # Step 1: Process and save the data
 # processor = SkeletonDataProcessor(data_dir="/content/Data")
 # processed_data_dir = processor.save_processed_data(output_dir="processed_skeleton_data")
+
+
+'''
+Head 0
+Shoulder-Center 1
+Shoulder-Right 2
+Shoulder-Left 3
+Elbow-Right 4
+Elbow-Left 5
+Wrist-Right 6
+Wrist-Left 7
+Hand-Right 8
+Hand-Left 9
+Spine 10
+Hip-centro 11
+Hip-Right 12
+Hip-Left 13
+Knee-Right 14
+Knee-Left 15
+Ankle-Right 16
+Ankle-Left 17
+Foot-Right 18
+Foot-Left 19
+
+'''

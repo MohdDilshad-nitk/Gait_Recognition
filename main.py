@@ -22,6 +22,7 @@ base_data_dir = base_dir + '/data'
 raw_data_dir = base_data_dir + '/Data'
 csv_data_dir = base_data_dir + '/CSVData'
 augmented_data_dir = base_data_dir + '/AugmentedData'
+gait_cycles_dir = base_data_dir + '/GaitCycles'
 trained_models_dir = base_data_dir + '/trained_models'
 
 
@@ -32,6 +33,9 @@ print("Transformation completed...")
 # Augment data
 augment_skeleton_data(csv_data_dir, augmented_data_dir)
 print("augmentation completed...")
+
+#Extract gait cycles
+# extract_gait_cycles_from_csv(csv_data_dir,gait_cycles_dir)
 
 
 # Create data loaders
@@ -86,14 +90,14 @@ model = SkeletonTransformer(
     rope=True
 )
 
-trainer = SkeletonTransformerTrainer(
-    model=model,
-    train_loader=train_loader,
-    val_loader=val_loader,
-    save_dir=trained_models_dir
-)
+# trainer = SkeletonTransformerTrainer(
+#     model=model,
+#     train_loader=train_loader,
+#     val_loader=val_loader,
+#     save_dir=trained_models_dir
+# )
 
-contrastive_trainer = ContSkeletonTransformerTrainer(
+trainer = ContSkeletonTransformerTrainer(
     model=model,
     train_loader=train_loader,
     val_loader=val_loader,
@@ -110,7 +114,7 @@ print("\n\nCreated model and model trainer...\n\n")
 #     resume_path=None  # Set to checkpoint path to resume training
 # )
 
-contrastive_trainer.train(
+trainer.train(
     num_epochs=1,
     resume_path=None  # Set to checkpoint path to resume training
 )

@@ -9,6 +9,15 @@ from data_loaders.train_test_val_loader import create_fixed_splits
 from Transformer.model import SkeletonTransformer
 from Transformer.trainer import SkeletonTransformerTrainer
 from Transformer.evaluater import evaluate_model, print_evaluation_results, plot_confusion_matrix
+from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_csv
+
+
+#!gdown 1EjEb53EEK9RZKND5dfF8TvoCrFUxqC7r -O /content/data.zip
+#!unzip /content/data.zip -d /content/Code/data
+
+
+#TODO: Check and update max_len in model.py, check what are the maximum number of frames in the dataset, generally for gait cycle its very less like around 30-40, so having maxlen as 5000 is unnecessary
+# also for normal case the max number of frames is i guess around 1000(check onnce) so we can set max_len to 1000-1500
 
 
 # Set random seed for reproducibility
@@ -35,7 +44,7 @@ augment_skeleton_data(csv_data_dir, augmented_data_dir)
 print("augmentation completed...")
 
 #Extract gait cycles
-# extract_gait_cycles_from_csv(csv_data_dir,gait_cycles_dir)
+extract_gait_cycles_from_csv(csv_data_dir,gait_cycles_dir)
 
 
 # Create data loaders

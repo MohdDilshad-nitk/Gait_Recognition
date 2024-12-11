@@ -4,7 +4,8 @@ import torch
 
 from Transformer.contrastive_trainer import ContSkeletonTransformerTrainer
 from data_preprocessing.kgdb_to_csv import process_skeleton_data
-from data_preprocessing.data_augmentation import augment_skeleton_data
+# from data_preprocessing.data_augmentation import augment_skeleton_data
+from data_preprocessing.data_augmentation_new import augment_skeleton_data
 from data_loaders.train_test_val_loader import create_fixed_splits
 from Transformer.model import SkeletonTransformer
 from Transformer.trainer import SkeletonTransformerTrainer
@@ -17,7 +18,9 @@ from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_cs
 
 
 #TODO: Check and update max_len in model.py, check what are the maximum number of frames in the dataset, generally for gait cycle its very less like around 30-40, so having maxlen as 5000 is unnecessary
-# also for normal case the max number of frames is i guess around 1000(check onnce) so we can set max_len to 1000-1500
+# also for normal case the max number of frames is i guess around 1000(check onnce) so we can set max_len to 1000-1500 try to keep it a power of 2
+
+# if training transformer model with gait cycle data, set max_len = 128
 
 
 # Set random seed for reproducibility

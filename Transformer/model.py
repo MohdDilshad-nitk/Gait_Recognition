@@ -1,101 +1,11 @@
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.optim import Adam
+# import torch.nn.functional as F
+# from torch.optim import Adam
 import numpy as np
-from typing import Dict, Tuple
-# import wandb  # for logging
-import random
-import os
+from typing import Tuple
 from datetime import datetime
-
-# class RotaryPositionalEmbedding(nn.Module):
-#     def __init__(self, d_model, max_seq_len: int = 5000):
-#         super(RotaryPositionalEmbedding, self).__init__()
-
-#         # Create a rotation matrix.
-#         self.rotation_matrix = torch.zeros(d_model, d_model, device=torch.device("cuda"))
-#         for i in range(d_model):
-#             for j in range(d_model):
-#                 self.rotation_matrix[i, j] = torch.cos(i * j * 0.01)
-
-#         # Create a positional embedding matrix.
-#         self.positional_embedding = torch.zeros(max_seq_len, d_model, device=torch.device("cuda"))
-#         for i in range(max_seq_len):
-#             for j in range(d_model):
-#                 self.positional_embedding[i, j] = torch.cos(i * j * 0.01)
-
-#     def forward(self, x):
-#         """
-#         Args:
-#             x: A tensor of shape (batch_size, seq_len, d_model).
-
-#         Returns:
-#             A tensor of shape (batch_size, seq_len, d_model).
-#         """
-
-#         # Add the positional embedding to the input tensor.
-#         x += self.positional_embedding
-
-#         # Apply the rotation matrix to the input tensor.
-#         x = torch.matmul(x, self.rotation_matrix)
-
-#         return x
-
-# class RotaryPositionalEmbedding(nn.Module):
-#     def __init__(self, dim: int):
-#         """
-#         Rotary Positional Encoding (RoPE)
-        
-#         Args:
-#             dim (int): Dimension of the embedding
-#         """
-#         super().__init__()
-#         self.dim = dim
-        
-#     def _rotate_half(self, x: torch.Tensor) -> torch.Tensor:
-#         """
-#         Rotate the last dimension of the input tensor
-        
-#         Args:
-#             x (torch.Tensor): Input tensor
-        
-#         Returns:
-#             torch.Tensor: Rotated tensor
-#         """
-#         x1, x2 = x[..., :self.dim // 2], x[..., self.dim // 2:]
-#         return torch.cat((-x2, x1), dim=-1)
-    
-#     def forward(self, x: torch.Tensor) -> torch.Tensor:
-#         """
-#         Apply rotary positional encoding to the input tensor
-        
-#         Args:
-#             x (torch.Tensor): Input tensor of shape (..., seq_len, dim)
-        
-#         Returns:
-#             torch.Tensor: Positionally encoded tensor
-#         """
-#         seq_len = x.size(1)
-        
-#         # Generate frequencies
-#         inv_freq = 1. / (10000 ** (torch.arange(0., self.dim, 2., device=x.device) / self.dim))
-        
-#         # Create position embeddings
-#         position = torch.arange(seq_len, device=x.device).unsqueeze(1).float()
-#         sinusoid_inp = torch.einsum("i,j->ij", position, inv_freq)
-#         emb = torch.cat((sinusoid_inp.sin(), sinusoid_inp.cos()), dim=-1)
-#         emb = emb.to(dtype=x.dtype, device=x.device)
-        
-#         # Reshape embeddings to match input tensor
-#         rotary_dim = emb.shape[-1]
-#         emb = emb[..., :rotary_dim]
-        
-#         # Apply rotation to the input tensor
-#         rot_x = x * emb[..., :self.dim].cos() + self._rotate_half(x) * emb[..., :self.dim].sin()
-        
-#         return rot_x
 
 
 import torch
@@ -178,6 +88,7 @@ class SkeletonTransformer(nn.Module):
         dim_feedforward: int = 2048,
         dropout: float = 0.1,
         num_classes: int = None,
+        max_len: int = 5000,
         rope: bool = False,
     ):
         super().__init__()
@@ -186,7 +97,7 @@ class SkeletonTransformer(nn.Module):
         self.embedding = SkeletonEmbedding(d_model)
         
         # self.pos_encoder = PositionalEncoding(d_model)
-        self.pos_encoder = RotaryPositionalEmbedding(d_model = d_model) if rope else PositionalEncoding(d_model)
+        self.pos_encoder = RotaryPositionalEmbedding(d_model = d_model,max_seq_len=max_len) if rope else PositionalEncoding(d_model, max_len=max_len)
 
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,

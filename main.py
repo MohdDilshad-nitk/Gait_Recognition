@@ -5,7 +5,7 @@ import torch
 from Transformer.contrastive_trainer import ContSkeletonTransformerTrainer
 from data_preprocessing.kgdb_to_csv import process_skeleton_data
 # from data_preprocessing.data_augmentation import augment_skeleton_data
-from data_preprocessing.data_augmentation_new import augment_skeleton_data
+from data_preprocessing.data_augmentation import augment_skeleton_data
 from data_loaders.train_test_val_loader import create_fixed_splits
 from Transformer.model import SkeletonTransformer
 from Transformer.trainer import SkeletonTransformerTrainer

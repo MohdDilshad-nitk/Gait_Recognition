@@ -134,43 +134,48 @@ class SkeletonDataAugmenter:
 
         for _, row in self.metadata.iterrows():
             # Read original sequence
-            person_id = row['person_id']
-            og_file_name =  row['file_name']
-            original_file = self.processed_data_dir / og_file_name
+            original_file = self.processed_data_dir / row['file_name']
             original_sequence = pd.read_csv(original_file)
+            person_id = row['person_id']
 
             aug_count = 0
             max_attempts = num_augmentations * 2  # Allow some failed attempts
             attempts = 0
 
+            #save the original file as well in output folder
+            original_file_name = f"{person_id}_{row['sequence_id']}.csv"
+            original_file_path = self.output_dir / original_file_name
+            original_sequence.to_csv(original_file_path, index=False)
 
-            while aug_count <= num_augmentations and attempts < max_attempts:
+            while aug_count < num_augmentations and attempts < max_attempts:
                 attempts += 1
-                augmented = ''
-                strategy_name = 'None'
 
-                if aug_count != 0:
-                    # Choose random augmentation strategy, apply and validate
-                    strategy_name, strategy_func = random.choice(strategies)
-                    augmented = strategy_func(original_sequence)
-                    if not self.validate_sequence(augmented):
-                        continue
-                else:
-                    augmented = original_sequence
+                # Choose random augmentation strategy
+                strategy_name, strategy_func = random.choice(strategies)
+
+                # Apply augmentation
+                augmented = strategy_func(original_sequence)
+
+                # Validate sequence
+                if not self.validate_sequence(augmented):
+                    continue
+
+                # Get next sequence number
+                next_seq_num = self.get_next_sequence_number(person_id)
 
                 # Create filename with incremental number
-                aug_file_prefix = og_file_name[:-4]
-                aug_filename = f"{aug_file_prefix}_aug_{aug_count}.csv"
+                aug_filename = f"{person_id}_{next_seq_num:02d}.csv"
+                # aug_filepath = self.processed_data_dir / aug_filename
                 aug_filepath = self.output_dir / aug_filename
+
 
                 # Save augmented sequence
                 augmented.to_csv(aug_filepath, index=False)
-                seq_id = (int(row['sequence_id'])-1)*(num_augmentations+1) + aug_count + 1 
-                
+
                 # Add to metadata
                 augmented_metadata.append({
                     'person_id': person_id,
-                    'sequence_id': seq_id,
+                    'sequence_id': f"{next_seq_num:02d}",
                     'file_name': aug_filename,
                     'num_frames': len(augmented),
                     'augmentation_type': strategy_name,
@@ -181,7 +186,10 @@ class SkeletonDataAugmenter:
 
         # Update metadata file
         augmented_metadata_df = pd.DataFrame(augmented_metadata)
-        augmented_metadata_df.to_csv(self.output_dir / 'metadata.csv', index=False)
+        original_metadata = pd.read_csv(self.processed_data_dir / 'metadata.csv')
+        updated_metadata = pd.concat([original_metadata, augmented_metadata_df], ignore_index=True)
+        # updated_metadata.to_csv(self.processed_data_dir / 'metadata.csv', index=False)
+        updated_metadata.to_csv(self.output_dir / 'metadata.csv', index=False)
 
 def augment_skeleton_data(processed_data_dir, output_dir, num_augmentations=10):
     """

@@ -198,6 +198,7 @@ def augment_skeleton_data(processed_data_dir, output_dir, num_augmentations=10):
     
     augmenter = SkeletonDataAugmenter(processed_data_dir, output_dir)
     augmenter.generate_augmented_sequences(num_augmentations)
+    print("augmentation completed...")
     return output_dir
 
 

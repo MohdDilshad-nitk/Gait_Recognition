@@ -90,3 +90,44 @@ def create_fixed_splits(data_dir, batch_size=32, seed=42):
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
     return train_loader, val_loader, test_loader
+
+
+
+# # Create data loaders and print sample batch
+def create_data_loaders(training_data_dir, base_data_dir ,batch_size=32):
+    try:
+        # Create data loaders
+        train_loader, val_loader, test_loader = create_fixed_splits(data_dir=training_data_dir, batch_size=32)
+
+        print(f"Number of training batches: {len(train_loader)}")
+        print(f"Number of validation batches: {len(val_loader)}")
+        print(f"Number of test batches: {len(test_loader)}")
+
+        # Get a sample batch
+        sample_batch = next(iter(train_loader))
+        # print(sample_batch)
+        print("\nSample batch contents:")
+        for key, value in sample_batch.items():
+            if torch.is_tensor(value):
+                print(f"{key} shape: {value.shape}")
+            else:
+                print(f"{key}: {value}")
+
+        # Save dataset statistics
+        stats = {
+            'num_training_sequences': len(train_loader.dataset),
+            'num_validation_sequences': len(val_loader.dataset),
+            'num_test_sequences': len(test_loader.dataset),
+            'max_sequence_length': train_loader.dataset.max_len,
+            'num_joints': 20,
+            'num_persons': len(train_loader.dataset.person_ids)
+        }
+
+        pd.DataFrame([stats]).to_csv(base_data_dir + '/training_dataset_statistics.csv', index=False)
+        print("\n\nCreated data loaders....\n\n")
+        return train_loader, val_loader, test_loader
+
+    except Exception as e:
+        print(f"Error processing dataset: {str(e)}")
+
+    

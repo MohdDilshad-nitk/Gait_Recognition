@@ -25,7 +25,7 @@ config = {
     'gait_features' : True,
     'rope' : True,
     'contrastive' : True,
-    'epochs' : 50
+    'epochs' : 60
 }
 
 

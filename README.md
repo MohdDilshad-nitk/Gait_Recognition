@@ -2,9 +2,9 @@
 Repository for major project in gait recognition
 
 ## Training
-- Step 1 : download the zip file
+- Step 1 : Download this repo as a zip file
 - Step 2 : upload the zip on google colab
-- Step 3 : in the ipynb file in google colab, create a new cell and paste these commands  and run
+- Step 3 : In the ipynb file in google colab, create a new cell and paste these commands  and run
 ```
 !unzip /content/Gait_Recognition-main.zip
 !gdown 1EjEb53EEK9RZKND5dfF8TvoCrFUxqC7r -O /content/data.zip

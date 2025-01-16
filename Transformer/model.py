@@ -67,11 +67,17 @@ class SkeletonEmbedding(nn.Module):
         super().__init__()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x shape: [batch_size, seq_len, num_joints, 3]
-        batch_size, seq_len, num_joints, coords = x.shape
 
-        # Combine all joints first
-        x = x.reshape(batch_size, seq_len, num_joints * coords)  # [batch_size, seq_len, 60]
+        if len(x.shape) == 4: #dealing with  gait cycles and  coordinates
+          # x shape: [batch_size, seq_len, num_joints, 3]
+          # Combine all joints
+          batch_size, seq_len, num_joints, coords = x.shape
+          x = x.reshape(batch_size, seq_len, num_joints * coords)  # [batch_size, seq_len, 60]
+
+        else: #dealing with gait features
+          # x shape: [batch_size, seq_len, gait_features(56)]
+          batch_size, seq_len, feats = x.shape
+          x = x.reshape(batch_size, seq_len, feats)
 
         # Project to d_model
         # x = self.joint_embedding(x)  # [batch_size, seq_len, d_model]  changing d_model to 60, no need to for a nn

@@ -17,16 +17,16 @@ from data_preprocessing.gait_features_from_cycle import extract_gait_features_fr
 #TODO: Check and update max_len in model.py, check what are the maximum number of frames in the dataset, generally for gait cycle its very less like around 30-40, so having maxlen as 5000 is unnecessary
 # also for normal case the max number of frames is i guess around 1000(check onnce) so we can set max_len to 1000-1500 try to keep it a power of 2
 
-
-config = {
-    'transform' : True,
-    'augment' : True,
-    'gait_cycles' : True,
-    'gait_features' : True,
-    'rope' : True,
-    'contrastive' : True,
-    'epochs' : 60
-}
+from config import config
+# config = {
+#     'transform' : True,
+#     'augment' : True,
+#     'gait_cycles' : True,
+#     'gait_features' : True,
+#     'rope' : True,
+#     'contrastive' : True,
+#     'epochs' : 60
+# }
 
 
 # Set random seed for reproducibility
@@ -69,7 +69,7 @@ if config['gait_features']:
 
 
 # Create data loaders
-train_loader, val_loader, test_loader = create_data_loaders(data_dir=training_data_dir, base_data_dir= base_data_dir, batch_size=32)
+train_loader, val_loader, test_loader = create_data_loaders(training_data_dir=training_data_dir, base_data_dir= base_data_dir, batch_size=32)
 
 # sb = ''
 # try:
@@ -109,12 +109,13 @@ train_loader, val_loader, test_loader = create_data_loaders(data_dir=training_da
 # print("\n\nCreated data loaders....\n\n")
 max_len = 128 if config['gait_cycles'] or config['gait_features'] else 5000
 rope = config['rope']
+d_model = 56 if config['gait_features'] else 60
 
 
 # Create model and trainer
 model = SkeletonTransformer(
     num_joints=20,
-    d_model=60,
+    d_model=d_model,
     nhead=1,
     num_encoder_layers=1,
     dim_feedforward=256,
@@ -143,13 +144,13 @@ else:
 
 print("\n\nCreated model and model trainer...\n\n")
 
-
+epochs = config['epochs']
 trainer.train(
-    num_epochs=config['epochs'],
+    num_epochs=epochs,
     resume_path=None  # Set to checkpoint path to resume training
 )
 
-torch.save(model.state_dict(),trained_models_dir + f'/best_model_{config['epochs']}.pt')
+torch.save(model.state_dict(),trained_models_dir + f'/best_model_{epochs}.pt')
 print("\n\n training completed... \n\n")
 
 
@@ -161,6 +162,6 @@ print_evaluation_results(results)
 plot_confusion_matrix(results['confusion_matrix'])
 
 # Save confusion matrix
-pd.DataFrame(results['confusion_matrix']).to_csv(f'confusion_matrix_{config['epochs']}.csv')
+pd.DataFrame(results['confusion_matrix']).to_csv(f'confusion_matrix_{epochs}.csv')
 
 print("\n\n Evaluation completed... \n\n")

@@ -11,6 +11,7 @@ from Transformer.trainer import SkeletonTransformerTrainer
 from Transformer.evaluater import evaluate_model, print_evaluation_results, plot_confusion_matrix
 from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_csv
 from data_preprocessing.gait_features_from_cycle import extract_gait_features_from_cycles
+from data_preprocessing.gait_event_features import extract_gait_events_and_features_from_cycles
 
 
 
@@ -42,6 +43,7 @@ csv_data_dir = base_data_dir + '/CSVData'
 augmented_data_dir = base_data_dir + '/AugmentedData'
 gait_cycles_dir = base_data_dir + '/GaitCycles'
 gait_features_dir = base_data_dir + '/GaitFeatures'
+gait_event_features_dir = base_data_dir + '/Gait_Event_Features'
 trained_models_dir = base_data_dir + '/trained_models'
 
 
@@ -64,6 +66,9 @@ if config['gait_cycles']:
 #Extract gait features
 if config['gait_features']:
     training_data_dir = extract_gait_features_from_cycles(gait_cycles_dir,gait_features_dir)
+
+if config['event_features']:
+    training_data_dir = extract_gait_events_and_features_from_cycles(gait_features_dir,gait_event_features_dir)
 
 is_skeleton = True
 if config['gait_features']:
@@ -108,9 +113,21 @@ train_loader, val_loader, test_loader = create_data_loaders(training_data_dir=tr
 
 
 # print("\n\nCreated data loaders....\n\n")
-max_len = 128 if config['gait_cycles'] or config['gait_features'] else 5000
+max_len = 5000
+
+if config['gait_cycles'] or config['gait_features']:
+    max_len = 128
+if config['event_features']:
+    max_len = 16
+
 rope = config['rope']
-d_model = 56 if config['gait_features'] else 60
+
+d_model = 60
+
+if config['gait_features']:
+    d_model = 56
+if config['event_features']:
+    d_model = 112
 
 
 # Create model and trainer

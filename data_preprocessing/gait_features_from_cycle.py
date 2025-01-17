@@ -62,17 +62,20 @@ def calculate_angle(j1, j2, j3, data):
     v = np.array([data[f'joint_{j3}_x'] - data[f'joint_{j2}_x'],
                   data[f'joint_{j3}_y'] - data[f'joint_{j2}_y'],
                   data[f'joint_{j3}_z'] - data[f'joint_{j2}_z']])
-
+    
     # Dot product and magnitudes
     dot_product = np.einsum('ij,ij->j', u, v)
     mag_u = np.linalg.norm(u, axis=0)
     mag_v = np.linalg.norm(v, axis=0)
 
-    # Angle in radians
-    angles = np.arccos(np.clip(dot_product / (mag_u * mag_v), -1.0, 1.0))
+    # Handle zero magnitudes
+    valid_indices = (mag_u > 1e-6) & (mag_v > 1e-6)  # Avoid division by zero
+    angles = np.zeros_like(dot_product)  # Default to 0 degrees
+    angles[valid_indices] = np.arccos(np.clip(dot_product[valid_indices] / (mag_u[valid_indices] * mag_v[valid_indices]), -1.0, 1.0))
 
     # Convert to degrees and normalize
     angles_normalized = np.degrees(angles) / 360
+
     return angles_normalized
 
 def extract_gait_features(input_file, output_dir):

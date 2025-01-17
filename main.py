@@ -48,8 +48,7 @@ trained_models_dir = base_data_dir + '/trained_models'
 training_data_dir = csv_data_dir
 
 # Transform data
-if config['transform']:
-    training_data_dir = process_skeleton_data(raw_data_dir, csv_data_dir)
+training_data_dir = process_skeleton_data(raw_data_dir, csv_data_dir)
 
 
 # Augment data
@@ -66,10 +65,12 @@ if config['gait_cycles']:
 if config['gait_features']:
     training_data_dir = extract_gait_features_from_cycles(gait_cycles_dir,gait_features_dir)
 
-
+is_skeleton = True
+if config['gait_features']:
+    is_skeleton = False
 
 # Create data loaders
-train_loader, val_loader, test_loader = create_data_loaders(training_data_dir=training_data_dir, base_data_dir= base_data_dir, batch_size=32)
+train_loader, val_loader, test_loader = create_data_loaders(training_data_dir=training_data_dir, base_data_dir= base_data_dir, is_skeleton = is_skeleton, batch_size=32)
 
 # sb = ''
 # try:

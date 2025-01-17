@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 
 class SkeletonDatasetFromCSV(Dataset):
-    def __init__(self, data_dir, split_metadata_file):
+    def __init__(self, data_dir, split_metadata_file, is_Skeleton = True):
         """
         Create a PyTorch dataset from processed CSV files for a specific split
 
@@ -25,6 +25,8 @@ class SkeletonDatasetFromCSV(Dataset):
         # Set max sequence length
         self.max_len = self.metadata['num_frames'].max()
 
+        self.is_Skeleton = is_Skeleton
+
     def __len__(self):
         return len(self.metadata)
 
@@ -36,17 +38,25 @@ class SkeletonDatasetFromCSV(Dataset):
         sequence_df = pd.read_csv(self.data_dir / row['file_name'])
         sequence = sequence_df.values
 
-        # Reshape back to (frames, joints, 3)
-        sequence = sequence.reshape(sequence.shape[0], -1, 3)
+        if self.is_Skeleton:
+            # Reshape back to (frames, joints, 3)
+            sequence = sequence.reshape(sequence.shape[0], -1, 3)
+        else:
+            sequence = sequence.reshape(sequence.shape[0], -1)
 
         # Convert to tensor
         sequence_tensor = torch.FloatTensor(sequence)
 
         # Pad sequence if necessary
         if sequence_tensor.size(0) < self.max_len:
-            padding = torch.zeros(self.max_len - sequence_tensor.size(0),
-                                sequence_tensor.size(1),
-                                sequence_tensor.size(2))
+            padding = None
+            if self.is_Skeleton:
+                padding = torch.zeros(self.max_len - sequence_tensor.size(0),
+                                    sequence_tensor.size(1),
+                                    sequence_tensor.size(2))
+            else:
+                padding = torch.zeros(self.max_len - sequence_tensor.size(0),
+                                sequence_tensor.size(1))
             sequence_tensor = torch.cat([sequence_tensor, padding], dim=0)
 
         # Create attention mask

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .dataset_from_csv import SkeletonDatasetFromCSV
 
-def create_fixed_splits(data_dir, batch_size=32, seed=42):
+def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42):
     """
     Create train, validation, and test splits from processed CSV data
     with fixed allocation: 3 for training, 1 for validation, 1 for testing.
@@ -80,9 +80,9 @@ def create_fixed_splits(data_dir, batch_size=32, seed=42):
     print(f"Test samples: {len(test_metadata)}")
 
     # Create datasets
-    train_dataset = SkeletonDatasetFromCSV(data_dir, 'train_metadata.csv')
-    val_dataset = SkeletonDatasetFromCSV(data_dir, 'val_metadata.csv')
-    test_dataset = SkeletonDatasetFromCSV(data_dir, 'test_metadata.csv')
+    train_dataset = SkeletonDatasetFromCSV(data_dir, 'train_metadata.csv', is_Skeleton = is_skeleton)
+    val_dataset = SkeletonDatasetFromCSV(data_dir, 'val_metadata.csv', is_Skeleton = is_skeleton)
+    test_dataset = SkeletonDatasetFromCSV(data_dir, 'test_metadata.csv', is_Skeleton = is_skeleton)
 
     # Create data loaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -94,10 +94,10 @@ def create_fixed_splits(data_dir, batch_size=32, seed=42):
 
 
 # # Create data loaders and print sample batch
-def create_data_loaders(training_data_dir, base_data_dir ,batch_size=32):
+def create_data_loaders(training_data_dir, base_data_dir ,is_skeleton = True, batch_size=32):
     try:
         # Create data loaders
-        train_loader, val_loader, test_loader = create_fixed_splits(data_dir=training_data_dir, batch_size=32)
+        train_loader, val_loader, test_loader = create_fixed_splits(data_dir=training_data_dir, is_skeleton =  is_skeleton, batch_size=32)
 
         print(f"Number of training batches: {len(train_loader)}")
         print(f"Number of validation batches: {len(val_loader)}")

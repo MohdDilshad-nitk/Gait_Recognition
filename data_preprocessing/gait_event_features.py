@@ -65,6 +65,7 @@ def extract_gait_events(file_path, output_dir):
 
 def extract_gait_events_and_features_from_cycles(input_dir, output_dir):
   
+    print("Starting gait feature extraction from gait events...")
     for filename in tqdm(os.listdir(input_dir)):
         if filename.endswith('.csv') and filename != 'metadata.csv':
             input_file = os.path.join(input_dir, filename)
@@ -73,5 +74,5 @@ def extract_gait_events_and_features_from_cycles(input_dir, output_dir):
     # Save metadata
     metadata_df = pd.DataFrame(metadata_list)
     metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
-    print("gait feature extraction completed...")
+    print("gait event feature extraction from gait events completed...")
     return output_dir

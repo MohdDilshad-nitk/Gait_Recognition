@@ -27,3 +27,19 @@ config = {
         'epochs' : 60
     }
 }
+
+# rope : True/False, contrastive: True/False * {
+
+# ['transform','gait_cycles','gait_features']
+# ['transform','gait_cycles','gait_features','event_features']
+
+# ['transform','augment']
+# ['transform','augment', 'gait_cycles']
+# ['transform','augment', 'gait_cycles', 'gait_features']
+# ['transform','augment', 'gait_cycles', 'gait_features', 'event_features']
+
+# ['transform', 'gait_cycles','augment']
+# ['transform', 'gait_cycles','augment', 'gait_features']
+# ['transform', 'gait_cycles','augment', 'gait_features', 'event_features']
+
+# }

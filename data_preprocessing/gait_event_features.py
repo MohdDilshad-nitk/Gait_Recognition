@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from pathlib import Path
+from tqdm import tqdm
 
 metadata_list = []
 person_seq = {}
@@ -63,13 +64,14 @@ def extract_gait_events(file_path, output_dir):
 
 
 def extract_gait_events_and_features_from_cycles(input_dir, output_dir):
-  for filename in os.listdir(input_dir):
-    if filename.endswith('.csv') and filename != 'metadata.csv':
-        input_file = os.path.join(input_dir, filename)
-        extract_gait_events(input_file, output_dir)
+  
+    for filename in tqdm(os.listdir(input_dir)):
+        if filename.endswith('.csv') and filename != 'metadata.csv':
+            input_file = os.path.join(input_dir, filename)
+            extract_gait_events(input_file, output_dir)
 
-  # Save metadata
-  metadata_df = pd.DataFrame(metadata_list)
-  metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
-
-  return output_dir
+    # Save metadata
+    metadata_df = pd.DataFrame(metadata_list)
+    metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
+    print("gait feature extraction completed...")
+    return output_dir

@@ -3,6 +3,7 @@ import numpy as np
 from pathlib import Path
 import random
 import re
+from tqdm import tqdm
 
 random.seed(42)
 
@@ -134,7 +135,7 @@ class SkeletonDataAugmenter:
             ('drop_scale', lambda seq: self.scale_sequence(self.random_drop_frames(seq)))
         ]
 
-        for _, row in self.metadata.iterrows():
+        for _, row in tqdm(self.metadata.iterrows()):
             # Read original sequence
             person_id = row['person_id']
             og_file_name =  row['file_name']

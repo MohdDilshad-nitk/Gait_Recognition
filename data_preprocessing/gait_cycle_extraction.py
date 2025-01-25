@@ -4,6 +4,7 @@ import numpy as np
 from scipy.signal import savgol_filter, argrelextrema
 from scipy.ndimage import gaussian_filter
 from pathlib import Path
+from tqdm import tqdm
 
 metadata_list = []
 person_seq = {}
@@ -102,7 +103,7 @@ def extract_gait_cycles(input_file, output_dir, threshold_fraction = 0.4):
 # output_dir = '/content/gait_cycles'
 
 def extract_gait_cycles_from_csv(input_dir, output_dir):
-  for filename in os.listdir(input_dir):
+  for filename in tqdm(os.listdir(input_dir)):
     if filename.endswith('.csv') and filename != 'metadata.csv':
         input_file = os.path.join(input_dir, filename)
         extract_gait_cycles(input_file, output_dir,0.4)

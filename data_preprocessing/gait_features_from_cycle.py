@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from tqdm import tqdm
 
 metadata_list = []
 person_seq = {}
@@ -156,7 +157,7 @@ def extract_gait_features(input_file, output_dir):
 
 
 def extract_gait_features_from_cycles(input_dir, output_dir):
-  for filename in os.listdir(input_dir):
+  for filename in tqdm(os.listdir(input_dir)):
     if filename.endswith('.csv') and filename != 'metadata.csv':
         input_file = os.path.join(input_dir, filename)
         extract_gait_features(input_file, output_dir)

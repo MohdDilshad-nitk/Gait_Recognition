@@ -107,11 +107,11 @@ def process_skeleton_data(data_dir, output_dir):
         output_dir (str): Directory to save processed data
     """
 
-    print("Starting transformation...")
+    print("\n\nStarting transformation...")
     print("input directory: ", data_dir, ", output directory: ", output_dir)
     processor = SkeletonDataProcessor(data_dir=data_dir)
     processed_data_dir = processor.save_processed_data(output_dir=output_dir)
-    print("Transformation completed...")
+    print("Transformation completed...\n\n")
     return processed_data_dir
 
 # # Step 1: Process and save the data

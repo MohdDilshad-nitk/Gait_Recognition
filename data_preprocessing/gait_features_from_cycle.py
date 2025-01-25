@@ -158,7 +158,7 @@ def extract_gait_features(input_file, output_dir):
 
 def extract_gait_features_from_cycles(input_dir, output_dir):
   
-  print("Starting gait feature extraction...")
+  print("\n\nStarting gait feature extraction...")
   print("input directory: ", input_dir, ", output directory: ", output_dir)
 
   for filename in tqdm(os.listdir(input_dir)):
@@ -170,7 +170,7 @@ def extract_gait_features_from_cycles(input_dir, output_dir):
   metadata_df = pd.DataFrame(metadata_list)
   metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
 
-  print("gait feature extraction completed...")
+  print("gait feature extraction completed...\n\n")
   return output_dir
 
 

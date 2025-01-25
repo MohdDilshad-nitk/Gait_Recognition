@@ -195,7 +195,7 @@ def augment_skeleton_data(processed_data_dir, output_dir, num_augmentations=10):
         num_augmentations (int): Number of augmentations per sequence
     """
 
-    print("Starting augmentation...")
+    print("\n\nStarting augmentation...")
     print("input directory: ", processed_data_dir, ", output directory: ", output_dir)
 
     output_path = Path(output_dir)
@@ -203,7 +203,7 @@ def augment_skeleton_data(processed_data_dir, output_dir, num_augmentations=10):
     
     augmenter = SkeletonDataAugmenter(processed_data_dir, output_dir)
     augmenter.generate_augmented_sequences(num_augmentations)
-    print("augmentation completed...")
+    print("augmentation completed...\n\n")
     return output_dir
 
 

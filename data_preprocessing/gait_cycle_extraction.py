@@ -104,7 +104,7 @@ def extract_gait_cycles(input_file, output_dir, threshold_fraction = 0.4):
 
 def extract_gait_cycles_from_csv(input_dir, output_dir):
 
-  print("Starting gait cycle extraction...")
+  print("\n\nStarting gait cycle extraction...")
   print("input directory: ", input_dir, ", output directory: ", output_dir)
 
   for filename in tqdm(os.listdir(input_dir)):
@@ -116,7 +116,7 @@ def extract_gait_cycles_from_csv(input_dir, output_dir):
   metadata_df = pd.DataFrame(metadata_list)
   metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
 
-  print("gait cycle extraction completed...")
+  print("gait cycle extraction completed...\n\n")
 
   return output_dir
 

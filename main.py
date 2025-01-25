@@ -14,11 +14,11 @@ from data_preprocessing.gait_features_from_cycle import extract_gait_features_fr
 from data_preprocessing.gait_event_features import extract_gait_events_and_features_from_cycles
 
 
+from config import config
 
 #TODO: Check and update max_len in model.py, check what are the maximum number of frames in the dataset, generally for gait cycle its very less like around 30-40, so having maxlen as 5000 is unnecessary
 # also for normal case the max number of frames is i guess around 1000(check onnce) so we can set max_len to 1000-1500 try to keep it a power of 2
 
-from config import config
 # config = {
 #     'transform' : True,
 #     'augment' : True,
@@ -47,35 +47,66 @@ gait_event_features_dir = base_data_dir + '/Gait_Event_Features'
 trained_models_dir = base_data_dir + '/trained_models'
 
 
-training_data_dir = csv_data_dir
+# training_data_dir = csv_data_dir
 
-# Transform data
-training_data_dir = process_skeleton_data(raw_data_dir, csv_data_dir)
+preprocessing = config['preprocess']
+
+preprocessing_funcs = {
+    'transform': process_skeleton_data,
+    'augment': augment_skeleton_data,
+    'gait_cycles': extract_gait_cycles_from_csv,
+    'gait_features': extract_gait_features_from_cycles,
+    'event_features': extract_gait_events_and_features_from_cycles
+}
+
+output_dirs = {
+    'transform': csv_data_dir,
+    'augment': augmented_data_dir,
+    'gait_cycles': gait_cycles_dir,
+    'gait_features': gait_features_dir,
+    'event_features': gait_event_features_dir
+}
+
+# # Transform data
+# training_data_dir = process_skeleton_data(raw_data_dir, csv_data_dir)
 
 
-# Augment data
-if config['augment']:
-    training_data_dir = augment_skeleton_data(csv_data_dir, augmented_data_dir)
+# # Augment data
+# if config['augment']:
+#     training_data_dir = augment_skeleton_data(csv_data_dir, augmented_data_dir)
 
 
-#Extract gait cycles
-if config['gait_cycles']:
-    training_data_dir = extract_gait_cycles_from_csv(csv_data_dir,gait_cycles_dir)
+# #Extract gait cycles
+# if config['gait_cycles']:
+#     training_data_dir = extract_gait_cycles_from_csv(csv_data_dir,gait_cycles_dir)
 
 
-#Extract gait features
-if config['gait_features']:
-    training_data_dir = extract_gait_features_from_cycles(gait_cycles_dir,gait_features_dir)
+# #Extract gait features
+# if config['gait_features']:
+#     training_data_dir = extract_gait_features_from_cycles(gait_cycles_dir,gait_features_dir)
 
-if config['event_features']:
-    training_data_dir = extract_gait_events_and_features_from_cycles(gait_features_dir,gait_event_features_dir)
+# if config['event_features']:
+#     training_data_dir = extract_gait_events_and_features_from_cycles(gait_features_dir,gait_event_features_dir)
+
+
+# preprocessing
+prev_dir = raw_data_dir
+for func in preprocessing:
+    prev_dir = preprocessing_funcs[func](prev_dir,output_dirs[func])
+
+
+
+
+
+
+
 
 is_skeleton = True
-if config['gait_features']:
+if ('gait_features' in config['preprocess']):
     is_skeleton = False
 
 # Create data loaders
-train_loader, val_loader, test_loader = create_data_loaders(training_data_dir=training_data_dir, base_data_dir= base_data_dir, is_skeleton = is_skeleton, batch_size=32)
+train_loader, val_loader, test_loader = create_data_loaders(training_data_dir = prev_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32)
 
 # sb = ''
 # try:
@@ -114,28 +145,29 @@ train_loader, val_loader, test_loader = create_data_loaders(training_data_dir=tr
 
 # print("\n\nCreated data loaders....\n\n")
 max_len = 5000
-
-if config['gait_cycles'] or config['gait_features']:
+if ('gait_cycles' in config['preprocess']) or ('gait_features' in config['preprocess']):
     max_len = 128
-if config['event_features']:
-    max_len = 16
+if ('event_features' in config['preprocess']):
+    max_len = 8
 
-rope = config['rope']
 
 d_model = 60
-
-if config['gait_features']:
+if ('gait_features' in config['preprocess']):
     d_model = 56
-if config['event_features']:
+if ('event_features' in config['preprocess']):
     d_model = 112
 
+
+rope = config['training']['rope']
+heads = config['training']['nhead']
+layers = config['training']['num_encoder_layers']
 
 # Create model and trainer
 model = SkeletonTransformer(
     num_joints=20,
     d_model=d_model,
-    nhead=1,
-    num_encoder_layers=1,
+    nhead=heads,
+    num_encoder_layers=layers,
     dim_feedforward=256,
     dropout=0.2,
     max_len=max_len,
@@ -145,7 +177,7 @@ model = SkeletonTransformer(
 
 trainer = None
 
-if config['contrastive']:
+if config['training']['contrastive']:
     trainer = ContSkeletonTransformerTrainer(
         model=model,
         train_loader=train_loader,
@@ -162,7 +194,7 @@ else:
 
 print("\n\nCreated model and model trainer...\n\n")
 
-epochs = config['epochs']
+epochs = config['training']['epochs']
 trainer.train(
     num_epochs=epochs,
     resume_path=None  # Set to checkpoint path to resume training

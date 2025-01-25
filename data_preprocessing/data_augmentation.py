@@ -135,7 +135,7 @@ class SkeletonDataAugmenter:
             ('drop_scale', lambda seq: self.scale_sequence(self.random_drop_frames(seq)))
         ]
 
-        for _, row in tqdm(self.metadata.iterrows()):
+        for _, row in tqdm(self.metadata.iterrows(), total=len(self.metadata)):
             # Read original sequence
             person_id = row['person_id']
             og_file_name =  row['file_name']
@@ -196,6 +196,8 @@ def augment_skeleton_data(processed_data_dir, output_dir, num_augmentations=10):
     """
 
     print("Starting augmentation...")
+    print("input directory: ", processed_data_dir, ", output directory: ", output_dir)
+
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     

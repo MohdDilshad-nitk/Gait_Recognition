@@ -159,6 +159,7 @@ def extract_gait_features(input_file, output_dir):
 def extract_gait_features_from_cycles(input_dir, output_dir):
   
   print("Starting gait feature extraction...")
+  print("input directory: ", input_dir, ", output directory: ", output_dir)
 
   for filename in tqdm(os.listdir(input_dir)):
     if filename.endswith('.csv') and filename != 'metadata.csv':

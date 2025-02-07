@@ -5,6 +5,8 @@ import torch.nn as nn
 import os
 from datetime import datetime
 from typing import Dict, Tuple
+from sklearn.model_selection import KFold
+import numpy as np
 
 class SkeletonTransformerTrainer:
     def __init__(
@@ -179,3 +181,54 @@ class SkeletonTransformerTrainer:
             if is_best:
                 print("New best model!")
             print()
+
+    def train_k_fold(self, num_epochs: int, k_folds: int, dataset):
+        """
+        Train the model using K-Fold Cross Validation.
+
+        Args:
+            num_epochs (int): Number of epochs per fold.
+            k_folds (int): Number of folds.
+            dataset (torch.utils.data.Dataset): Full dataset to be split into K folds.
+        """
+        kf = KFold(n_splits=k_folds, shuffle=True, random_state=42)
+        fold_accuracies = []
+
+        for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
+            print(f"\n--- Training Fold {fold + 1}/{k_folds} ---\n")
+            
+            train_subset = torch.utils.data.Subset(dataset, train_idx)
+            val_subset = torch.utils.data.Subset(dataset, val_idx)
+            
+            self.train_loader = torch.utils.data.DataLoader(train_subset, batch_size=32, shuffle=True)
+            self.val_loader = torch.utils.data.DataLoader(val_subset, batch_size=32)
+            
+            self.best_val_accuracy = 0.0  # Reset best accuracy for each fold
+            
+            for epoch in range(num_epochs):
+                train_metrics = self.train_epoch()
+                val_metrics = self.validate()
+                
+                metrics = {**train_metrics, **val_metrics}
+                
+                is_best = False
+                if val_metrics['val_accuracy'] > self.best_val_accuracy:
+                    self.best_val_accuracy = val_metrics['val_accuracy']
+                    self.best_epoch = epoch
+                    is_best = True
+                
+                self.save_checkpoint(epoch, metrics, is_best, fold=fold)
+                
+                print(f"\nFold {fold + 1}, Epoch {epoch+1}/{num_epochs}")
+                for k, v in metrics.items():
+                    print(f"{k}: {v:.4f}")
+                if is_best:
+                    print("New best model for this fold!")
+
+            fold_accuracies.append(self.best_val_accuracy)
+
+        print("\nCross-validation results:")
+        for i, acc in enumerate(fold_accuracies):
+            print(f"Fold {i+1}: Accuracy = {acc:.4f}")
+
+        print(f"\nAverage Accuracy: {np.mean(fold_accuracies):.4f} ± {np.std(fold_accuracies):.4f}")

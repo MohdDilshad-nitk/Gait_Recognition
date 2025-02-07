@@ -24,6 +24,7 @@ config = {
         'num_encoder_layers':1,
         'rope' : True,
         'contrastive' : True,
+        'k_fold' : False,
         'epochs' : 60
     }
 }

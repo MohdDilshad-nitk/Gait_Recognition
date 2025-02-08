@@ -47,8 +47,7 @@ class SkeletonTransformerTrainer:
         correct = 0
         total = 0
 
-        all_preds = []
-        all_labels = []
+      
 
         # Add progress bar for validation
         # val_pbar = tqdm(self.val_loader, desc='Validating', leave=False)
@@ -66,24 +65,22 @@ class SkeletonTransformerTrainer:
             correct += (pred == person_id).sum().item()
             total += person_id.size(0)
 
-            all_preds.extend(pred.cpu().numpy())
-            all_labels.extend(person_id.cpu().numpy())
+            # all_preds.extend(pred.cpu().numpy())
+            # all_labels.extend(person_id.cpu().numpy())
 
             # Update progress bar with current accuracy
             # current_accuracy = correct / max(total, 1)
             # val_pbar.set_postfix({'accuracy': f'{current_accuracy:.4f}'})
 
-        # Compute precision, recall, and F1-score
-        precision = precision_score(all_labels, all_preds, average='weighted', zero_division=0)
-        recall = recall_score(all_labels, all_preds, average='weighted', zero_division=0)
-        f1 = f1_score(all_labels, all_preds, average='weighted', zero_division=0)
+        # # Compute precision, recall, and F1-score
+        # precision = precision_score(all_labels, all_preds, average='weighted', zero_division=0)
+        # recall = recall_score(all_labels, all_preds, average='weighted', zero_division=0)
+        # f1 = f1_score(all_labels, all_preds, average='weighted', zero_division=0)
 
         return {
             'val_loss': total_loss / max(len(self.val_loader), 1),
             'val_accuracy': correct / max(total, 1),
-            'val_precision': precision,
-            'val_recall': recall,
-            'val_f1': f1
+            
         }
 
     def save_checkpoint(
@@ -152,6 +149,9 @@ class SkeletonTransformerTrainer:
         correct = 0
         total = 0
 
+        all_preds = []
+        all_labels = []
+
         for batch in self.train_loader:
             sequence = batch['sequence'].to(self.device)
             attention_mask = batch['attention_mask'].to(self.device)
@@ -170,12 +170,22 @@ class SkeletonTransformerTrainer:
             correct += (pred == person_id).sum().item()
             total += person_id.size(0)
 
-            # Update progress bar with current loss and accuracy
-            current_accuracy = correct / max(total, 1)
 
+            all_preds.extend(pred.cpu().numpy())
+            all_labels.extend(person_id.cpu().numpy())
+
+         # Compute precision, recall, and F1-score
+        precision = precision_score(all_labels, all_preds, average='weighted', zero_division=0)
+        recall = recall_score(all_labels, all_preds, average='weighted', zero_division=0)
+        f1 = f1_score(all_labels, all_preds, average='weighted', zero_division=0)
+        
         return {
             'train_cls_loss': total_cls_loss / len(self.train_loader),
-            'train_accuracy': correct / total
+            'train_accuracy': correct / total,
+            
+            'train_precision': precision,
+            'train_recall': recall,
+            'train_f1': f1
         }
 
     def train(self, num_epochs: int, resume_path: str = None):

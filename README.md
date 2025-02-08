@@ -16,5 +16,5 @@ Repository for major project in gait recognition
 ```
 These commands will 1. unzip the code, 2. download the dataset from gdrive 3. move and create required directories
 
-- Step 5 : Double click on code/main.py file, it will open it in a editor in collab itself (on right side), modify  the config object according to requirement and save the file (Ctrl + s)
+- Step 5 : Double click on code/config.py file, it will open it in a editor in collab itself (on right side), modify  the config object according to requirement and save the file (Ctrl + s)
 - Step 6 : Create another new cell and run ```!python /content/Code/main.py```

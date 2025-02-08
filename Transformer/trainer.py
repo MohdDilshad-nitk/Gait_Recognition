@@ -12,8 +12,8 @@ class SkeletonTransformerTrainer:
     def __init__(
         self,
         model: SkeletonTransformer,
-        train_loader: torch.utils.data.DataLoader,
-        val_loader: torch.utils.data.DataLoader,
+        train_loader: torch.utils.data.DataLoader | None,
+        val_loader: torch.utils.data.DataLoader | None,
         learning_rate: float = 1e-3,
         weight_decay: float = 1e-4,
         save_dir: str = 'models'
@@ -74,7 +74,8 @@ class SkeletonTransformerTrainer:
         self,
         epoch: int,
         metrics: Dict[str, float],
-        is_best: bool = False
+        is_best: bool = False,
+        fold: int = -1
     ):
         """Save model checkpoint"""
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -88,10 +89,20 @@ class SkeletonTransformerTrainer:
             'best_epoch': self.best_epoch
         }
 
+        if fold != -1:
+          checkpoint['fold'] = fold
+
+
+        path = f'checkpoint_epoch_{epoch}_{timestamp}.pt'
+        if fold != -1:
+          path = f'checkpoint_fold_{fold}_epoch_{epoch}_{timestamp}.pt'
+
         checkpoint_path = os.path.join(
             self.save_dir,
-            f'checkpoint_epoch_{epoch}_{timestamp}.pt'
+            path
         )
+
+        
         torch.save(checkpoint, checkpoint_path)
 
         if is_best:

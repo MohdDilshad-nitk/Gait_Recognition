@@ -73,12 +73,15 @@ if ('gait_features' in config['preprocess']):
     is_skeleton = False
 
 
+train_loader, val_loader, test_loader = None, None, None
+dataset = None
+
 if config['training']['k_fold']:
     # Create datasets
-    dataset = SkeletonDatasetFromCSV(prev_dir, f'train_metadata_k_fold.csv', is_Skeleton=is_skeleton)
-else:
-    # Create data loaders
-    train_loader, val_loader, test_loader = create_data_loaders(training_data_dir = prev_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32)
+    dataset = SkeletonDatasetFromCSV(prev_dir, f'{prev_dir}/metadata.csv', is_Skeleton=is_skeleton)
+
+#test loader is required for evaluation
+train_loader, val_loader, test_loader = create_data_loaders(training_data_dir = prev_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32)
 
 
 

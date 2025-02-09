@@ -15,8 +15,8 @@ class ContSkeletonTransformerTrainer:
     def __init__(
         self,
         model: SkeletonTransformer,
-        train_loader: torch.utils.data.DataLoader,
-        val_loader: torch.utils.data.DataLoader,
+        train_loader: torch.utils.data.DataLoader | None,
+        val_loader: torch.utils.data.DataLoader | None,
         learning_rate: float = 1e-3,
         weight_decay: float = 1e-4,
         save_dir: str = 'models',

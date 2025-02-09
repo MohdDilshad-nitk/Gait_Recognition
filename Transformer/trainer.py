@@ -219,53 +219,67 @@ class SkeletonTransformerTrainer:
                 print("New best model!")
             print()
 
-    def train_k_fold(self, num_epochs: int, k_folds: int, dataset):
-        """
-        Train the model using K-Fold Cross Validation.
+        def train_k_fold(self, num_epochs: int, k_folds: int, dataset, resume_path: str = None):
+            """
+            Train the model using K-Fold Cross Validation with the ability to resume from a checkpoint.
 
-        Args:
-            num_epochs (int): Number of epochs per fold.
-            k_folds (int): Number of folds.
-            dataset (torch.utils.data.Dataset): Full dataset to be split into K folds.
-        """
-        kf = KFold(n_splits=k_folds, shuffle=True, random_state=42)
-        fold_accuracies = []
+            Args:
+                num_epochs (int): Number of epochs per fold.
+                k_folds (int): Number of folds.
+                dataset (torch.utils.data.Dataset): Full dataset to be split into K folds.
+                resume_path (str, optional): Path to a checkpoint to resume training from.
+            """
+            kf = KFold(n_splits=k_folds, shuffle=True, random_state=42)
+            fold_accuracies = []
+            start_fold = 0
+            start_epoch = 0
 
-        for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
-            print(f"\n--- Training Fold {fold + 1}/{k_folds} ---\n")
-            
-            train_subset = torch.utils.data.Subset(dataset, train_idx)
-            val_subset = torch.utils.data.Subset(dataset, val_idx)
-            
-            self.train_loader = torch.utils.data.DataLoader(train_subset, batch_size=32, shuffle=True)
-            self.val_loader = torch.utils.data.DataLoader(val_subset, batch_size=32)
-            
-            self.best_val_accuracy = 0.0  # Reset best accuracy for each fold
-            
-            for epoch in range(num_epochs):
-                train_metrics = self.train_epoch()
-                val_metrics = self.validate()
+            if resume_path is not None:
+                checkpoint = torch.load(resume_path)
+                start_fold = checkpoint.get('fold', 0)
+                start_epoch = checkpoint['epoch'] + 1  # Resume from the next epoch
+                self.load_checkpoint(resume_path)
+                print(f"Resumed training from Fold {start_fold+1}, Epoch {start_epoch}")
+
+            for fold, (train_idx, val_idx) in enumerate(kf.split(dataset)):
+                if fold < start_fold:
+                    continue  # Skip folds that were already trained
                 
-                metrics = {**train_metrics, **val_metrics}
+                print(f"\n--- Training Fold {fold + 1}/{k_folds} ---\n")
                 
-                is_best = False
-                if val_metrics['val_accuracy'] > self.best_val_accuracy:
-                    self.best_val_accuracy = val_metrics['val_accuracy']
-                    self.best_epoch = epoch
-                    is_best = True
+                train_subset = torch.utils.data.Subset(dataset, train_idx)
+                val_subset = torch.utils.data.Subset(dataset, val_idx)
                 
-                self.save_checkpoint(epoch, metrics, is_best, fold=fold)
+                self.train_loader = torch.utils.data.DataLoader(train_subset, batch_size=32, shuffle=True)
+                self.val_loader = torch.utils.data.DataLoader(val_subset, batch_size=32)
                 
-                print(f"\nFold {fold + 1}, Epoch {epoch+1}/{num_epochs}")
-                for k, v in metrics.items():
-                    print(f"{k}: {v:.4f}")
-                if is_best:
-                    print("New best model for this fold!")
+                self.best_val_accuracy = 0.0  # Reset best accuracy for each fold
+                
+                for epoch in range(start_epoch if fold == start_fold else 0, num_epochs):
+                    train_metrics = self.train_epoch()
+                    val_metrics = self.validate()
+                    
+                    metrics = {**train_metrics, **val_metrics}
+                    
+                    is_best = False
+                    if val_metrics['val_accuracy'] > self.best_val_accuracy:
+                        self.best_val_accuracy = val_metrics['val_accuracy']
+                        self.best_epoch = epoch
+                        is_best = True
+                    
+                    self.save_checkpoint(epoch, metrics, is_best, fold=fold)
+                    
+                    print(f"\nFold {fold + 1}, Epoch {epoch+1}/{num_epochs}")
+                    for k, v in metrics.items():
+                        print(f"{k}: {v:.4f}")
+                    if is_best:
+                        print("New best model for this fold!")
+                
+                fold_accuracies.append(self.best_val_accuracy)
+                start_epoch = 0  # Reset epoch counter for next fold
 
-            fold_accuracies.append(self.best_val_accuracy)
+            print("\nCross-validation results:")
+            for i, acc in enumerate(fold_accuracies):
+                print(f"Fold {i+1}: Accuracy = {acc:.4f}")
 
-        print("\nCross-validation results:")
-        for i, acc in enumerate(fold_accuracies):
-            print(f"Fold {i+1}: Accuracy = {acc:.4f}")
-
-        print(f"\nAverage Accuracy: {np.mean(fold_accuracies):.4f} ± {np.std(fold_accuracies):.4f}")
+            print(f"\nAverage Accuracy: {np.mean(fold_accuracies):.4f} ± {np.std(fold_accuracies):.4f}")

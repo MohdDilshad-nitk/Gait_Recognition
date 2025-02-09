@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 import torch
 
 from Transformer.contrastive_trainer import ContSkeletonTransformerTrainer
@@ -16,6 +17,8 @@ from data_preprocessing.gait_event_features import extract_gait_events_and_featu
 
 
 from config import config
+import glob
+from datetime import datetime
 
 #TODO: Check and update max_len in model.py, check what are the maximum number of frames in the dataset, generally for gait cycle its very less like around 30-40, so having maxlen as 5000 is unnecessary
 # also for normal case the max number of frames is i guess around 1000(check onnce) so we can set max_len to 1000-1500 try to keep it a power of 2
@@ -38,8 +41,9 @@ gait_features_dir = base_data_dir + '/GaitFeatures'
 gait_event_features_dir = base_data_dir + '/Gait_Event_Features'
 trained_models_dir = base_data_dir + '/trained_models'
 
+drive_checkpoint_dir = '/content/drive/My Drive/skeleton_checkpoints'
+os.makedirs(drive_checkpoint_dir, exist_ok=True)
 
-# training_data_dir = csv_data_dir
 
 preprocessing = config['preprocess']
 
@@ -123,30 +127,43 @@ if config['training']['contrastive']:
         model=model,
         train_loader=train_loader,
         val_loader=val_loader,
-        save_dir=trained_models_dir
+        save_dir=drive_checkpoint_dir
     )
 else:
     trainer = SkeletonTransformerTrainer(
         model=model,
         train_loader=train_loader,
         val_loader=val_loader,
-        save_dir=trained_models_dir
+        save_dir=drive_checkpoint_dir
     )
 
 print("\n\nCreated model and model trainer...\n\n")
 
-epochs = config['training']['epochs']
 
+# Find the latest checkpoint
+checkpoint_path = 'checkpoint_fold_*_epoch_*_*.pt' if config['training']['k_fold'] else 'checkpoint_epoch_*_*.pt'
+checkpoint_files = glob.glob(os.path.join(drive_checkpoint_dir, checkpoint_path))
+latest_checkpoint = max(checkpoint_files, key=os.path.getctime) if checkpoint_files else None
+
+if latest_checkpoint:
+    print(f"Resuming from checkpoint: {latest_checkpoint}")
+else:
+    print("No checkpoint found, starting training from scratch.")
+
+
+
+epochs = config['training']['epochs']
 if config['training']['k_fold']:
     trainer.train_k_fold(
         num_epochs=epochs,
         k_folds=5,
-        dataset= dataset
+        dataset= dataset,
+        resume_path=latest_checkpoint  # Set to checkpoint path to resume training
     )
 else:
     trainer.train(
         num_epochs=epochs,
-        resume_path=None  # Set to checkpoint path to resume training
+        resume_path=latest_checkpoint  # Set to checkpoint path to resume training
     )
 
 # Save best model

@@ -16,5 +16,12 @@ Repository for major project in gait recognition
 ```
 These commands will 1. unzip the code, 2. download the dataset from gdrive 3. move and create required directories
 
-- Step 5 : Double click on code/config.py file, it will open it in a editor in collab itself (on right side), modify  the config object according to requirement and save the file (Ctrl + s)
-- Step 6 : Create another new cell and run ```!python /content/Code/main.py```
+- Step 5 : Create a new cell to mount the google drive to save the checkpoints, just put the below code, run the cell, give the permissions
+```
+from google.colab import drive
+drive.mount('/content/drive')
+
+```
+
+- Step 6 : Double click on code/config.py file, it will open it in a editor in collab itself (on right side), modify  the config object according to requirement and save the file (Ctrl + s)
+- Step 7 : Create another new cell and run ```!python /content/Code/main.py```

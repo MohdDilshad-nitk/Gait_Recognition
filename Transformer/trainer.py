@@ -214,7 +214,11 @@ class SkeletonTransformerTrainer:
             # Print detailed metrics every epoch
             print(f"\nEpoch {epoch+1}/{num_epochs}")
             for k, v in metrics.items():
-                print(f"{k}: {v:.4f}")
+                if isinstance(v, tuple):
+                    formatted_values = tuple(f"{x:.4f}" for x in v)
+                    print(f"{k}: {formatted_values}")
+                else:
+                    print(f"{k}: {v:.4f}")
             if is_best:
                 print("New best model!")
             print()
@@ -270,8 +274,13 @@ class SkeletonTransformerTrainer:
                 self.save_checkpoint(epoch, metrics, is_best, fold=fold)
                 
                 print(f"\nFold {fold + 1}, Epoch {epoch+1}/{num_epochs}")
+
                 for k, v in metrics.items():
-                    print(f"{k}: {v:.4f}")
+                    if isinstance(v, tuple):
+                        formatted_values = tuple(f"{x:.4f}" for x in v)
+                        print(f"{k}: {formatted_values}")
+                    else:
+                        print(f"{k}: {v:.4f}")
                 if is_best:
                     print("New best model for this fold!")
             

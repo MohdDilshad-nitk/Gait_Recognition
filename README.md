@@ -18,8 +18,8 @@ These commands will 1. unzip the code, 2. download the dataset from gdrive 3. mo
 
 - Step 5 : Create a new cell to mount the google drive to save the checkpoints, just put the below code, run the cell, give the permissions
 ```
-  from google.colab import drive
-  drive.mount('/content/drive')
+from google.colab import drive
+drive.mount('/content/drive')
 
 ```
 

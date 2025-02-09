@@ -26,7 +26,9 @@ config = {
         'contrastive' : True,
         'k_fold' : False,
         'epochs' : 60
-    }
+    },
+
+    'drive_checkpoint_path' : '/content/drive/My Drive/trained_gait_model_checkpoints',
 }
 
 # rope : True/False, contrastive: True/False * {

@@ -41,7 +41,7 @@ gait_features_dir = base_data_dir + '/GaitFeatures'
 gait_event_features_dir = base_data_dir + '/Gait_Event_Features'
 trained_models_dir = base_data_dir + '/trained_models'
 
-drive_checkpoint_dir = '/content/drive/My Drive/skeleton_checkpoints'
+drive_checkpoint_dir = config['drive_checkpoint_path']
 os.makedirs(drive_checkpoint_dir, exist_ok=True)
 
 

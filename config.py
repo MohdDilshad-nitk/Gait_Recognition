@@ -1,14 +1,3 @@
-# config = {
-#     'transform' : True,
-#     'augment' : False,
-#     'gait_cycles' : True,
-#     'gait_features' : True,
-#     'event_features' : True,
-#     'rope' : True,
-#     'contrastive' : True,
-#     'epochs' : 60
-# }
-
 
 config = {
     
@@ -19,6 +8,8 @@ config = {
                     'gait_features',
                     'event_features'],
 
+    'drive_checkpoint_path' : '/content/drive/My Drive/trained_gait_model_checkpoints',
+
     'training' : {
         'nhead':1,
         'num_encoder_layers':1,
@@ -28,7 +19,6 @@ config = {
         'epochs' : 60
     },
 
-    'drive_checkpoint_path' : '/content/drive/My Drive/trained_gait_model_checkpoints',
 }
 
 # rope : True/False, contrastive: True/False * {

@@ -39,7 +39,9 @@ augmented_data_dir = base_data_dir + '/AugmentedData'
 gait_cycles_dir = base_data_dir + '/GaitCycles'
 gait_features_dir = base_data_dir + '/GaitFeatures'
 gait_event_features_dir = base_data_dir + '/Gait_Event_Features'
+
 trained_models_dir = base_data_dir + '/trained_models'
+os.makedirs(trained_models_dir, exist_ok=True)
 
 drive_checkpoint_dir = config['drive_checkpoint_path']
 os.makedirs(drive_checkpoint_dir, exist_ok=True)

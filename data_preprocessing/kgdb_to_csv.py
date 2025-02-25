@@ -15,6 +15,23 @@ class SkeletonDataProcessor:
         self.person_dirs = sorted([d for d in self.data_dir.iterdir() if d.is_dir()])
         self.num_joints = 20
 
+        self.min_vals, self.max_vals = self.overall_min_max()
+
+    def overall_min_max(self):
+        """Same as your original implementation"""
+        min_vals = np.inf * np.ones((self.num_joints, 3))
+        max_vals = -np.inf * np.ones((self.num_joints, 3))
+
+        for person_dir in self.person_dirs:
+            skeleton_files = sorted(person_dir.glob('*.txt'))
+
+            for file_path in skeleton_files:
+                sequence = self.read_skeleton_file(file_path)
+                min_vals = np.minimum(min_vals, sequence.min(axis=(0, 1)))
+                max_vals = np.maximum(max_vals, sequence.max(axis=(0, 1)))
+
+        return min_vals, max_vals
+
     def read_skeleton_file(self, file_path):
         """Same as your original implementation"""
         with open(file_path, 'r') as file:
@@ -40,8 +57,11 @@ class SkeletonDataProcessor:
             hip_center = sequence[frame_idx, hip_center_idx]
             normalized_sequence[frame_idx] -= hip_center
 
-        min_vals = normalized_sequence.min(axis=(0, 1), keepdims=True)
-        max_vals = normalized_sequence.max(axis=(0, 1), keepdims=True)
+        # min_vals = normalized_sequence.min(axis=(0, 1), keepdims=True)
+        # max_vals = normalized_sequence.max(axis=(0, 1), keepdims=True)
+
+        min_vals = self.min_vals
+        max_vals = self.max_vals
         normalized_sequence = (normalized_sequence - min_vals) / (max_vals - min_vals + 1e-7)
 
         return normalized_sequence

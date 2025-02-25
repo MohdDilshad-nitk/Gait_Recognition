@@ -49,12 +49,14 @@ class RotaryPositionalEmbedding(nn.Module):
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model: int, max_len: int = 5000):
         super().__init__()
+        even_d_model = d_model if d_model % 2 == 0 else d_model + 1
         position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * (-np.log(10000.0) / d_model))
-        pe = torch.zeros(1, max_len, d_model)
+        div_term = torch.exp(torch.arange(0, even_d_model, 2) * (-np.log(10000.0) / d_model))
+        pe = torch.zeros(1, max_len, even_d_model)
         pe[0, :, 0::2] = torch.sin(position * div_term)
         pe[0, :, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe', pe)
+
+        self.register_buffer('pe', pe[:, :, :d_model])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x + self.pe[:, :x.size(1)]

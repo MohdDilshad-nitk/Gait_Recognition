@@ -9,7 +9,7 @@ from tqdm import tqdm
 metadata_list = []
 person_seq = {}
 
-def extract_gait_cycles(input_file, output_dir, threshold_fraction = 0.4):
+def extract_gait_cycles(input_file, output_dir, threshold_fraction = 0.4, gsg = False):
     """
     Extracts gait cycles from a CSV file and saves them as separate CSV files.
 
@@ -68,14 +68,25 @@ def extract_gait_cycles(input_file, output_dir, threshold_fraction = 0.4):
     gait_cycles = []
     df = df.drop(columns=['Ankle_Distance', 'Ankle_Distance_Smoothed'])
 
-    for peak_group in peak_groups:
-      #take a window of 3 in the peak group, add the gait cycles, slide the window
-      for i in range(0, len(peak_group)):
-        start = peak_group[i]
-        if i+2 < len(peak_group):
-          end = peak_group[i+2]
-          gait_cycle = df.iloc[start:end+1]
-          gait_cycles.append(gait_cycle)
+    if gsg:
+      for peak_group in peak_groups:
+        #take a window of 3 in the peak group, add the gait cycles, slide the window
+        for i in range(0, len(peak_group)):
+          start = peak_group[i]
+          for j in range(i+2, len(peak_group), 2):
+            if j < len(peak_group):
+              end = peak_group[j]
+              gait_cycle = df.iloc[start:end+1]
+              gait_cycles.append(gait_cycle)
+    else:   
+      for peak_group in peak_groups:
+        #take a window of 3 in the peak group, add the gait cycles, slide the window
+        for i in range(0, len(peak_group)):
+          start = peak_group[i]
+          if i+2 < len(peak_group):
+            end = peak_group[i+2]
+            gait_cycle = df.iloc[start:end+1]
+            gait_cycles.append(gait_cycle)
 
     # Save the extracted gait cycles as separate CSV files
 
@@ -120,4 +131,22 @@ def extract_gait_cycles_from_csv(input_dir, output_dir):
 
   return output_dir
 
+
+def extract_gait_cycles_from_csv_gsg(input_dir, output_dir):
+
+  print("\n\nStarting gait cycle extraction with gsg...")
+  print("input directory: ", input_dir, ", output directory: ", output_dir)
+
+  for filename in tqdm(os.listdir(input_dir)):
+    if filename.endswith('.csv') and filename != 'metadata.csv':
+        input_file = os.path.join(input_dir, filename)
+        extract_gait_cycles(input_file, output_dir,0.4, True)
+
+  # Save metadata
+  metadata_df = pd.DataFrame(metadata_list)
+  metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
+
+  print("gait cycle extraction completed...\n\n")
+
+  return output_dir
 # extract_gait_cycles_from_csv(input_dir,output_dir)

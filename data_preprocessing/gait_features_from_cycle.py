@@ -60,7 +60,7 @@ def extract_gait_features_optimized(df):
     
     return pd.DataFrame(distances)
 
-def batch_optimized_extract_gait_features_from_cycle(input_dir, output_dir):
+def extract_gait_features_from_cycles(input_dir, output_dir):
     """Processes all gait cycle data and saves optimized feature extractions."""
     print("\nStarting batch-optimized gait feature extraction...")
     Path(output_dir).mkdir(parents=True, exist_ok=True)

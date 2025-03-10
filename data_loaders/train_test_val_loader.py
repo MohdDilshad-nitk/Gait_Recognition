@@ -67,6 +67,10 @@ def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42):
     val_metadata = val_metadata.sample(frac=1, random_state=seed).reset_index(drop=True)
     test_metadata = test_metadata.sample(frac=1, random_state=seed).reset_index(drop=True)
 
+    train_metadata = train_metadata.sort_values(by=['chunk'])
+    val_metadata = val_metadata.sort_values(by=['chunk'])    
+    test_metadata = test_metadata.sort_values(by=['chunk'])
+
     # Save split metadata
     train_metadata.to_csv(Path(data_dir) / 'train_metadata.csv', index=False)
     val_metadata.to_csv(Path(data_dir) / 'val_metadata.csv', index=False)

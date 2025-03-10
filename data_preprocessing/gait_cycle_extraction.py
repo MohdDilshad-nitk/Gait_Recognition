@@ -266,7 +266,7 @@ def extract_gait_cycles(df, input_file, output_dir, threshold_fraction = 0.4,  g
 
     # base_name = os.path.splitext(os.path.basename(input_file))[0]
     for i, cycle in enumerate(gait_cycles):
-        output_file = os.path.join(output_dir, f"{input_file}_{i+1}.csv")
+        # output_file = os.path.join(output_dir, f"{input_file}_{i+1}.csv")
 
         # Add to metadata
         person_id = input_file[0:9]
@@ -281,13 +281,42 @@ def extract_gait_cycles(df, input_file, output_dir, threshold_fraction = 0.4,  g
             'num_frames': len(cycle),
             'chunk': chunk_index 
         })
-        final_cycles[output_file] = cycle
+        final_cycles[f"{input_file}_{i+1}.csv"] = cycle
         # Check if we need to save the current batch
         save_chunked(output_dir)
 
 
 
 def extract_gait_cycles_from_csv(input_dir, output_dir):
+
+  print("\n\nStarting gait cycle extraction...")
+  print("input directory: ", input_dir, ", output directory: ", output_dir)
+
+ 
+  with open(input_dir + '/data.pkl', 'rb') as f:
+    csv_data = pickle.load(f)
+
+  for filename, data in tqdm(csv_data.items()):
+    if filename.endswith('.csv') and filename != 'metadata.csv':
+        extract_gait_cycles(data,filename[:-4], output_dir,0.4, False)
+
+
+  save_chunked(output_dir, last_chunk = True)  
+  # #save the final_cycles in pickle format
+  # with open(output_dir + '/data.pkl', 'wb') as f:
+  #   pickle.dump(final_cycles, f)
+
+
+  # Save metadata
+  metadata_df = pd.DataFrame(metadata_list)
+  metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
+
+  # del final_cycles
+  print("gait cycle extraction completed...\n\n")
+
+  return output_dir
+
+def extract_gait_cycles_from_csv_gsg(input_dir, output_dir):
 
   print("\n\nStarting gait cycle extraction...")
   print("input directory: ", input_dir, ", output directory: ", output_dir)
@@ -313,7 +342,5 @@ def extract_gait_cycles_from_csv(input_dir, output_dir):
 
   # del final_cycles
   print("gait cycle extraction completed...\n\n")
-
-  return output_dir
 
 # extract_gait_cycles_from_csv(input_dir,output_dir)

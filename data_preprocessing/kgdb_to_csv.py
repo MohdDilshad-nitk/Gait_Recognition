@@ -221,40 +221,48 @@ class SkeletonDataProcessor:
         # Create metadata list
         metadata_list = []
 
+        data_file_paths = []
         for person_dir in tqdm(self.person_dirs):
             person_id = person_dir.name
             skeleton_files = sorted(person_dir.glob('*.txt'))
 
             for file_path in skeleton_files:
-                sequence_id = file_path.stem
+                data_file_paths.append([person_id, file_path])
 
-                # Read and normalize sequence
-                sequence = self.read_skeleton_file(file_path)
-                normalized_sequence = self.normalize_sequence(sequence)
+        # shuffle data_file_paths
+        np.random.seed(42)
+        np.random.shuffle(data_file_paths)
 
-                # Reshape sequence to 2D for saving to CSV
-                # Shape: (frames, joints*3)
-                flattened_sequence = normalized_sequence.reshape(normalized_sequence.shape[0], -1)
+        for [person_id, file_path] in tqdm(data_file_paths):
+            sequence_id = file_path.stem
 
-                # Create column names
-                columns = [f'joint_{j}_{coord}' for j in range(self.num_joints)
-                          for coord in ['x', 'y', 'z']]
+            # Read and normalize sequence
+            sequence = self.read_skeleton_file(file_path)
+            normalized_sequence = self.normalize_sequence(sequence)
 
-                # Save sequence to CSV
-                sequence_df = pd.DataFrame(flattened_sequence, columns=columns)
-                output_file = f'{person_id}_{sequence_id}.csv'
-                
-                # sequence_df.to_csv(output_file, index=False)
+            # Reshape sequence to 2D for saving to CSV
+            # Shape: (frames, joints*3)
+            flattened_sequence = normalized_sequence.reshape(normalized_sequence.shape[0], -1)
 
-                self.all_sequences[output_file] = sequence_df
+            # Create column names
+            columns = [f'joint_{j}_{coord}' for j in range(self.num_joints)
+                        for coord in ['x', 'y', 'z']]
 
-                # Add to metadata
-                metadata_list.append({
-                    'person_id': person_id,
-                    'sequence_id': sequence_id,
-                    'file_name': f'{person_id}_{sequence_id}.csv',
-                    'num_frames': len(sequence)
-                })
+            # Save sequence to CSV
+            sequence_df = pd.DataFrame(flattened_sequence, columns=columns)
+            output_file = f'{person_id}_{sequence_id}.csv'
+            
+            # sequence_df.to_csv(output_file, index=False)
+
+            self.all_sequences[output_file] = sequence_df
+
+            # Add to metadata
+            metadata_list.append({
+                'person_id': person_id,
+                'sequence_id': sequence_id,
+                'file_name': f'{person_id}_{sequence_id}.csv',
+                'num_frames': len(sequence)
+            })
 
         # Save metadata
         metadata_df = pd.DataFrame(metadata_list)

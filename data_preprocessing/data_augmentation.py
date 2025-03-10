@@ -347,15 +347,15 @@ class SkeletonDataAugmenter:
             ('drop_scale', lambda seq: self.scale_sequence(self.random_drop_frames(seq)))
         ]
 
-        with open(self.processed_data_dir + '/data.pkl', 'rb') as f:
+        with open(self.processed_data_dir / 'data.pkl', 'rb') as f:
             csv_data = pickle.load(f)
 
-        for filename, data in tqdm(csv_data.items()):
+        for filename, original_sequence in tqdm(csv_data.items()):
             # Read original sequence
             person_id = filename[:9] 
             og_file_name =  filename
             original_file = self.processed_data_dir / og_file_name
-            original_sequence = pd.read_csv(original_file)
+            # original_sequence = pd.read_csv(original_file)
 
             aug_count = 0
             max_attempts = num_augmentations * 2  # Allow some failed attempts

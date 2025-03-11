@@ -3,6 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import pickle
 
 class SkeletonDatasetFromCSV(Dataset):
     def __init__(self, data_dir, split_metadata_file, is_Skeleton = True):
@@ -26,6 +27,8 @@ class SkeletonDatasetFromCSV(Dataset):
         self.max_len = self.metadata['num_frames'].max()
 
         self.is_Skeleton = is_Skeleton
+        self.chunk_data = None
+        self.loaded_chunk_number = -1
 
     def __len__(self):
         return len(self.metadata)
@@ -34,8 +37,17 @@ class SkeletonDatasetFromCSV(Dataset):
         # Get metadata for this sequence
         row = self.metadata.iloc[idx]
 
+        chunk = row['chunk']
+        if self.loaded_chunk_number != chunk:
+          with open(self.data_dir / f'data_{chunk}.pkl', 'rb') as f:
+            self.chunk_data = pickle.load(f)
+      
+          
         # Read sequence from CSV
-        sequence_df = pd.read_csv(self.data_dir / row['file_name'])
+        sequence_df = self.chunk_data[row['file_name']]
+
+        # Read sequence from CSV
+        # sequence_df = pd.read_csv(self.data_dir / row['file_name'])
         sequence = sequence_df.values
 
         if self.is_Skeleton:

@@ -21,7 +21,7 @@ excluded_joints = {0, 1, 10, 11}  # Set for faster lookup
 def save_features_chunk(output_dir, chunk_index):
     global all_features
     """Saves the current batch of processed features and clears memory."""
-    chunk_file = os.path.join(output_dir, f"features_{chunk_index}.pkl")
+    chunk_file = os.path.join(output_dir, f"data_{chunk_index}.pkl")
     with open(chunk_file, 'wb') as f:
         pickle.dump(all_features, f)
 
@@ -87,8 +87,8 @@ def extract_gait_features_from_cycles(input_dir, output_dir):
             input_file = filename[:-4]
             features_df = extract_gait_features_optimized(df)
 
-            output_file = os.path.join(output_dir, f"{input_file}.csv")
-            all_features[str(output_file)] = features_df
+            # output_file = os.path.join(output_dir, f"{input_file}.csv")
+            all_features[f"{input_file}.csv"] = features_df
         
 
             # Metadata handling

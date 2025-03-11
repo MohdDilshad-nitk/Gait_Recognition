@@ -405,7 +405,7 @@ class SkeletonDataAugmenter:
         augmented_metadata_df.to_csv(self.output_dir / 'metadata.csv', index=False)
 
         # Save all augmented sequences
-        with open(self.output_dir + '/data.pkl', 'wb') as f:
+        with open(self.output_dir / 'data.pkl', 'wb') as f:
           pickle.dump(self.all_augments, f)
 
 def augment_skeleton_data(processed_data_dir, output_dir, num_augmentations=10):

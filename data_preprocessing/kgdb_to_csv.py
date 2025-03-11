@@ -222,7 +222,7 @@ class SkeletonDataProcessor:
         metadata_list = []
 
         data_file_paths = []
-        for person_dir in tqdm(self.person_dirs):
+        for person_dir in self.person_dirs:
             person_id = person_dir.name
             skeleton_files = sorted(person_dir.glob('*.txt'))
 

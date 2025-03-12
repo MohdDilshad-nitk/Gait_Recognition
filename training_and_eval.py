@@ -5,25 +5,20 @@ import torch
 
 from Transformer.contrastive_trainer import ContSkeletonTransformerTrainer
 from data_loaders.dataset_from_csv import SkeletonDatasetFromCSV
-from data_preprocessing.kgdb_to_csv import process_skeleton_data
-from data_preprocessing.data_augmentation import augment_skeleton_data
+# from data_preprocessing.kgdb_to_csv import process_skeleton_data
+# from data_preprocessing.data_augmentation import augment_skeleton_data
 from data_loaders.train_test_val_loader import create_data_loaders
 from Transformer.model import SkeletonTransformer
 from Transformer.trainer import SkeletonTransformerTrainer
 from Transformer.evaluater import evaluate_model, print_evaluation_results, plot_confusion_matrix
-from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_csv, extract_gait_cycles_from_csv_gsg
-from data_preprocessing.gait_features_from_cycle import extract_gait_features_from_cycles
-from data_preprocessing.gait_event_features import extract_gait_events_and_features_from_cycles
+# from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_csv, extract_gait_cycles_from_csv_gsg
+# from data_preprocessing.gait_features_from_cycle import extract_gait_features_from_cycles
+# from data_preprocessing.gait_event_features import extract_gait_events_and_features_from_cycles
 
 
-from config import config
 import glob
-# from datetime import datetime
 
-#TODO: Check and update max_len in model.py, check what are the maximum number of frames in the dataset, generally for gait cycle its very less like around 30-40, so having maxlen as 5000 is unnecessary
-# also for normal case the max number of frames is i guess around 1000(check onnce) so we can set max_len to 1000-1500 try to keep it a power of 2
-
-def main_train_code(config):
+def train_and_eval(config):
 
     # Set random seed for reproducibility
     np.random.seed(42)
@@ -49,15 +44,6 @@ def main_train_code(config):
 
     preprocessing = config['preprocess']
 
-    preprocessing_funcs = {
-        'transform': process_skeleton_data,
-        'augment': augment_skeleton_data,
-        'gait_cycles': extract_gait_cycles_from_csv,
-        'gait_cycles_gsg': extract_gait_cycles_from_csv_gsg,
-        'gait_features': extract_gait_features_from_cycles,
-        'event_features': extract_gait_events_and_features_from_cycles
-    }
-
     output_dirs = {
         'transform': csv_data_dir,
         'augment': augmented_data_dir,
@@ -68,12 +54,7 @@ def main_train_code(config):
     }
 
 
-    # preprocessing
-    prev_dir = raw_data_dir
-    for func in preprocessing:
-        prev_dir = preprocessing_funcs[func](prev_dir,output_dirs[func])
-
-
+    preprocessed_data_dir = output_dirs[preprocessing[-1]]
 
 
     is_skeleton = True
@@ -86,16 +67,21 @@ def main_train_code(config):
 
     if config['training']['k_fold']:
         # Create datasets
-        dataset = SkeletonDatasetFromCSV(prev_dir, f'{prev_dir}/metadata.csv', is_Skeleton=is_skeleton)
+        dataset = SkeletonDatasetFromCSV(preprocessed_data_dir, f'{preprocessed_data_dir}/metadata.csv', is_Skeleton=is_skeleton)
 
     #test loader is required for evaluation
-    train_loader, val_loader, test_loader = create_data_loaders(training_data_dir = prev_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32)
+    train_loader, val_loader, test_loader = create_data_loaders(training_data_dir = preprocessed_data_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32)
 
 
 
-    max_len = 5000
+    max_len = 1024
+
     if ('gait_cycles' in config['preprocess']) or ('gait_features' in config['preprocess']):
-        max_len = 128
+        max_len = 256
+
+    if ('gait_cycles_gsg' in config['preprocess']):
+        max_len =1024
+
     if ('event_features' in config['preprocess']):
         max_len = 8
 
@@ -110,6 +96,12 @@ def main_train_code(config):
     rope = config['training']['rope']
     heads = config['training']['nhead']
     layers = config['training']['num_encoder_layers']
+
+    if 'max_len' in config['training']:
+        max_len = config['training']['max_len']
+
+    if 'd_model' in config['training']:
+        d_model = config['training']['d_model']
 
     # Create model and trainer
     model = SkeletonTransformer(
@@ -188,24 +180,5 @@ def main_train_code(config):
 
 
 if __name__ == '__main__':
-#     config = {
-    
-    
-#         'preprocess' : ['transform',
-#                         'augment',
-#                         'gait_cycles',
-#                         'gait_features',
-#                         'event_features'],
-
-#         'drive_checkpoint_path' : '/content/drive/My Drive/trained_gait_model_checkpoints',
-
-#         'training' : {
-#             'nhead':1,
-#             'num_encoder_layers':1,
-#             'rope' : True,
-#             'contrastive' : True,
-#             'k_fold' : False,
-#             'epochs' : 60
-#         },
-# }
-    main_train_code(config)
+    from config import config
+    train_and_eval(config)

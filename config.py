@@ -1,7 +1,7 @@
 
 config = {
     
-    
+    'base_dir': '/kaggle/working/Gait_Recognition-main', #for colab : '/content/Code'
     'preprocess' : ['transform',
                     'augment',
                     'gait_cycles',
@@ -13,8 +13,8 @@ config = {
     'training' : {
         'nhead':1,
         'num_encoder_layers':1,
-        'rope' : True,
-        'contrastive' : True,
+        'rope' : False,
+        'contrastive' : False,
         'k_fold' : False,
         'epochs' : 60
     },

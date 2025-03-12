@@ -1,4 +1,5 @@
 import pickle
+import shutil
 import pandas as pd
 import numpy as np
 import os
@@ -87,7 +88,7 @@ def extract_gait_events_and_features_from_cycles(input_dir, output_dir):
             extract_gait_events(df, filename)
 
 
-    os.rmdir(input_dir)
+    shutil.rmtree(input_dir)
     with open(output_dir + '/data.pkl', 'wb') as f:
         pickle.dump(all_features, f)
 

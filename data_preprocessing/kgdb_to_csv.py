@@ -140,7 +140,7 @@ import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 import pickle
-import time
+import shutil
 import os
 
 class SkeletonDataProcessor:
@@ -266,7 +266,7 @@ class SkeletonDataProcessor:
         metadata_df.to_csv(output_path + '/metadata.csv', index=False)
 
         # delete the input dir
-        # os.rmdir(self.data_dir)
+        # shutil.rmtree(self.data_dir)
 
         with open(output_path + '/data.pkl', 'wb') as f:
           pickle.dump(self.all_sequences, f)

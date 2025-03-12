@@ -1,4 +1,5 @@
 import os
+import shutil
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -119,7 +120,7 @@ def extract_gait_features_from_cycles(input_dir, output_dir):
     pd.DataFrame(metadata_list).to_csv(os.path.join(output_dir, 'metadata.csv'), index=False)
     
     # delete the input dir
-    os.rmdir(input_dir)
+    shutil.rmtree(input_dir)
 
     with open(os.path.join(output_dir, 'data.pkl'), 'wb') as f:
         pickle.dump(all_features, f)

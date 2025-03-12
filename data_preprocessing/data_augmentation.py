@@ -208,6 +208,7 @@
 
 
 
+import shutil
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -405,7 +406,7 @@ class SkeletonDataAugmenter:
         augmented_metadata_df = pd.DataFrame(augmented_metadata)
         augmented_metadata_df.to_csv(self.output_dir / 'metadata.csv', index=False)
 
-        os.rmdir(self.processed_data_dir)
+        shutil.rmtree(self.processed_data_dir)
         # Save all augmented sequences
         with open(self.output_dir / 'data.pkl', 'wb') as f:
           pickle.dump(self.all_augments, f)

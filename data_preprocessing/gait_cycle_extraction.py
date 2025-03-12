@@ -154,6 +154,7 @@
 
 
 import os
+import shutil
 import pandas as pd
 import numpy as np
 from scipy.signal import savgol_filter, argrelextrema
@@ -305,7 +306,7 @@ def extract_gait_cycles_from_csv(input_dir, output_dir):
 
   # save_chunked(output_dir, last_chunk = True)  
 
-  os.rmdir(input_dir)
+  shutil.rmtree(input_dir)
   #save the final_cycles in pickle format
   with open(output_dir + '/data.pkl', 'wb') as f:
     pickle.dump(final_cycles, f)
@@ -336,7 +337,7 @@ def extract_gait_cycles_from_csv_gsg(input_dir, output_dir):
 
   # save_chunked(output_dir, last_chunk = True) 
 
-  os.rmdir(input_dir) 
+  shutil.rmtree(input_dir) 
   # #save the final_cycles in pickle format
   with open(output_dir + '/data.pkl', 'wb') as f:
     pickle.dump(final_cycles, f)

@@ -120,7 +120,8 @@ def extract_gait_features_from_cycles(input_dir, output_dir):
     pd.DataFrame(metadata_list).to_csv(os.path.join(output_dir, 'metadata.csv'), index=False)
     
     # delete the input dir
-    shutil.rmtree(input_dir)
+    # shutil.rmtree(input_dir)
+    os.remove(input_file_path)
 
     with open(os.path.join(output_dir, 'data.pkl'), 'wb') as f:
         pickle.dump(all_features, f)

@@ -40,7 +40,7 @@ class SkeletonDatasetFromCSV(Dataset):
 
         # chunk = row['chunk']
         if not self.loaded_data:
-        #   print(f'Loading chunk {chunk}')
+          print('Loading data')
           with open(self.data_dir / f'data.pkl', 'rb') as f:
             self.chunk_data = pickle.load(f)
             self.loaded_data = True

@@ -1,3 +1,4 @@
+import pickle
 import pandas as pd
 import numpy as np
 import os
@@ -6,15 +7,16 @@ from tqdm import tqdm
 
 metadata_list = []
 person_seq = {}
+all_features = {}
 
 # Step 1: Read the CSV file
-def extract_gait_events(file_path, output_dir):
+def extract_gait_events(df, file_path):
 
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
+    # output_path = Path(output_dir)
+    # output_path.mkdir(parents=True, exist_ok=True)
 
     # Read the CSV file into a DataFrame
-    df = pd.read_csv(file_path)
+    # df = pd.read_csv(file_path)
 
     # Step 2: Define percentage group ranges
     percentages = [(0, 10), (10, 30), (30, 50), (50, 60), (60, 73), (73, 87), (87, 100)]
@@ -42,12 +44,12 @@ def extract_gait_events(file_path, output_dir):
     column_names = [f"{col}_mean" for col in df.columns] + [f"{col}_std" for col in df.columns]
     results_df.columns = column_names
 
-    # Save the extracted gait features as separate CSV files
-    base_name = os.path.splitext(os.path.basename(file_path))[0]
-    output_file = os.path.join(output_dir, f"{base_name}.csv")
+    # # Save the extracted gait features as separate CSV files
+    # base_name = os.path.splitext(os.path.basename(file_path))[0]
+    # output_file = os.path.join(output_dir, f"{base_name}.csv")
 
     # Add to metadata
-    person_id = base_name[0:9]
+    person_id = file_path[0:9]
     if person_id not in person_seq:
         person_seq[person_id] = 0
 
@@ -55,22 +57,39 @@ def extract_gait_events(file_path, output_dir):
     metadata_list.append({
         'person_id': person_id,
         'sequence_id': person_seq[person_id],
-        'file_name': f"{base_name}.csv",
+        'file_name': f"{file_path}.csv",
         'num_frames': 7
     })
 
     # Save the results to a new CSV file
-    results_df.to_csv(output_file, index=False)
+    # results_df.to_csv(output_file, index=False)
+    all_features[file_path] = results_df
 
 
 def extract_gait_events_and_features_from_cycles(input_dir, output_dir):
   
     print("\n\nStarting gait feature extraction from gait events...")
     print("input directory: ", input_dir, ", output directory: ", output_dir)
-    for filename in tqdm(os.listdir(input_dir)):
+
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    with open(input_dir + '/data.pkl', 'rb') as f:
+        data = pickle.load(f)
+
+
+
+
+    for filename, df in tqdm(data.items()):
         if filename.endswith('.csv') and filename != 'metadata.csv':
-            input_file = os.path.join(input_dir, filename)
-            extract_gait_events(input_file, output_dir)
+            # input_file = os.path.join(input_dir, filename)
+            extract_gait_events(df, filename)
+
+
+    os.rmdir(input_dir)
+    with open(output_dir + '/data.pkl', 'wb') as f:
+        pickle.dump(all_features, f)
 
     # Save metadata
     metadata_df = pd.DataFrame(metadata_list)

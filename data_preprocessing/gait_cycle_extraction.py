@@ -167,24 +167,24 @@ metadata_list = []
 person_seq = {}
 
 final_cycles = {}
-chunk_size = 25000  # Define the chunk size
-chunk_index = 0  # Initialize chunk index
+# chunk_size = 25000  # Define the chunk size
+# chunk_index = 0  # Initialize chunk index
 
-def save_chunked(output_dir, last_chunk = False):
-    global final_cycles, chunk_index
-    if len(final_cycles) >= chunk_size or (last_chunk and len(final_cycles) > 0):
-        chunk_file = f"data_{chunk_index}.pkl"
-        with open(os.path.join(output_dir, chunk_file), 'wb') as f:
-            pickle.dump(final_cycles, f)
+# def save_chunked(output_dir, last_chunk = False):
+#     global final_cycles, chunk_index
+#     if len(final_cycles) >= chunk_size or (last_chunk and len(final_cycles) > 0):
+#         chunk_file = f"data_{chunk_index}.pkl"
+#         with open(os.path.join(output_dir, chunk_file), 'wb') as f:
+#             pickle.dump(final_cycles, f)
     
         
-        # Explicitly delete the dictionary and force garbage collection
-        del final_cycles
-        gc.collect()  # Force memory cleanup
+#         # Explicitly delete the dictionary and force garbage collection
+#         del final_cycles
+#         gc.collect()  # Force memory cleanup
 
-        # Reinitialize the dictionary and increment chunk index
-        final_cycles = {}
-        chunk_index += 1
+#         # Reinitialize the dictionary and increment chunk index
+#         final_cycles = {}
+#         chunk_index += 1
 
 def extract_gait_cycles(df, input_file, output_dir, threshold_fraction = 0.4,  gsg=False):
     """
@@ -197,6 +197,8 @@ def extract_gait_cycles(df, input_file, output_dir, threshold_fraction = 0.4,  g
 
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
+
+    # global final_cycles
 
     # Load the input CSV file
     # df = pd.read_csv(input_file)
@@ -278,12 +280,12 @@ def extract_gait_cycles(df, input_file, output_dir, threshold_fraction = 0.4,  g
             'person_id': person_id,
             'sequence_id': person_seq[person_id],
             'file_name': f"{input_file}_{i+1}.csv",
-            'num_frames': len(cycle),
-            'chunk': chunk_index 
+            'num_frames': len(cycle)
+           
         })
         final_cycles[f"{input_file}_{i+1}.csv"] = cycle
         # Check if we need to save the current batch
-        save_chunked(output_dir)
+        # save_chunked(output_dir)
 
 
 
@@ -301,10 +303,12 @@ def extract_gait_cycles_from_csv(input_dir, output_dir):
         extract_gait_cycles(data,filename[:-4], output_dir,0.4, False)
 
 
-  save_chunked(output_dir, last_chunk = True)  
-  # #save the final_cycles in pickle format
-  # with open(output_dir + '/data.pkl', 'wb') as f:
-  #   pickle.dump(final_cycles, f)
+  # save_chunked(output_dir, last_chunk = True)  
+
+  os.rmdir(input_dir)
+  #save the final_cycles in pickle format
+  with open(output_dir + '/data.pkl', 'wb') as f:
+    pickle.dump(final_cycles, f)
 
 
   # Save metadata
@@ -330,10 +334,12 @@ def extract_gait_cycles_from_csv_gsg(input_dir, output_dir):
         extract_gait_cycles(data,filename[:-4], output_dir,0.4, True)
 
 
-  save_chunked(output_dir, last_chunk = True)  
+  # save_chunked(output_dir, last_chunk = True) 
+
+  os.rmdir(input_dir) 
   # #save the final_cycles in pickle format
-  # with open(output_dir + '/data.pkl', 'wb') as f:
-  #   pickle.dump(final_cycles, f)
+  with open(output_dir + '/data.pkl', 'wb') as f:
+    pickle.dump(final_cycles, f)
 
 
   # Save metadata
@@ -342,5 +348,6 @@ def extract_gait_cycles_from_csv_gsg(input_dir, output_dir):
 
   # del final_cycles
   print("gait cycle extraction completed...\n\n")
+  return output_dir
 
 # extract_gait_cycles_from_csv(input_dir,output_dir)

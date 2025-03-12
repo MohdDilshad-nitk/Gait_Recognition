@@ -65,61 +65,64 @@ def extract_gait_features_from_cycles(input_dir, output_dir):
     print("\nStarting batch-optimized gait feature extraction...")
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    chunk_index = 0
-    chunk_files = sorted([f for f in os.listdir(input_dir) if f.startswith('data_') and f.endswith('.pkl')])
+    # chunk_index = 0
+    # chunk_files = sorted([f for f in os.listdir(input_dir) if f.startswith('data_') and f.endswith('.pkl')])
     # chunk_files = ['data_4.pkl', 'data_5.pkl']
     global all_features, gait_cycle_data
     
-    for chunk_file in chunk_files:
-        input_file_path = os.path.join(input_dir, chunk_file)
-        print(f"Processing {chunk_file}...")
+    # for chunk_file in chunk_files:
+    input_file_path = os.path.join(input_dir, 'data.pkl')
+    # print(f"Processing {chunk_file}...")
 
-        # Load chunk data
-        with open(input_file_path, 'rb') as f:
-            gait_cycle_data = pickle.load(f)
+    # Load chunk data
+    with open(input_file_path, 'rb') as f:
+        gait_cycle_data = pickle.load(f)
 
-        # all_features = {}  # Store processed features temporarily
+    # all_features = {}  # Store processed features temporarily
 
-        for filename, df in tqdm(gait_cycle_data.items()):
-            if not filename.endswith('.csv') or filename == 'metadata.csv':
-                continue
+    for filename, df in tqdm(gait_cycle_data.items()):
+        if not filename.endswith('.csv') or filename == 'metadata.csv':
+            continue
 
-            input_file = filename[:-4]
-            features_df = extract_gait_features_optimized(df)
+        input_file = filename[:-4]
+        features_df = extract_gait_features_optimized(df)
 
-            # output_file = os.path.join(output_dir, f"{input_file}.csv")
-            all_features[f"{input_file}.csv"] = features_df
-        
+        # output_file = os.path.join(output_dir, f"{input_file}.csv")
+        all_features[f"{input_file}.csv"] = features_df
+    
 
-            # Metadata handling
-            person_id = input_file[:9]
-            person_seq[person_id] = person_seq.get(person_id, 0) + 1
+        # Metadata handling
+        person_id = input_file[:9]
+        person_seq[person_id] = person_seq.get(person_id, 0) + 1
 
-            metadata_list.append({
-                'person_id': person_id,
-                'sequence_id': person_seq[person_id],
-                'file_name': f"{input_file}.csv",
-                'num_frames': len(features_df),
-                'chunk': chunk_index
-            })
+        metadata_list.append({
+            'person_id': person_id,
+            'sequence_id': person_seq[person_id],
+            'file_name': f"{input_file}.csv",
+            'num_frames': len(features_df),
+            
+        })
 
         # Save the processed chunk
-        save_features_chunk(output_dir, chunk_index)
+        # save_features_chunk(output_dir, chunk_index)
 
         # Explicitly delete objects and collect garbage
-        del all_features
-        del gait_cycle_data
-        gc.collect()
+        # del all_features
+        # del gait_cycle_data
+        # gc.collect()
 
-        all_features = {}
+        # all_features = {}
 
-        chunk_index += 1  # Move to the next chunk index
+        # chunk_index += 1  # Move to the next chunk index
     
     # Save metadata
     pd.DataFrame(metadata_list).to_csv(os.path.join(output_dir, 'metadata.csv'), index=False)
     
-    # with open(os.path.join(output_dir, 'data.pkl'), 'wb') as f:
-    #     pickle.dump(all_features, f)
+    # delete the input dir
+    os.rmdir(input_dir)
+
+    with open(os.path.join(output_dir, 'data.pkl'), 'wb') as f:
+        pickle.dump(all_features, f)
     
     print("Batch-optimized gait feature extraction completed.\n")
     return output_dir

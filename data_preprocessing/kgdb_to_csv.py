@@ -229,9 +229,6 @@ class SkeletonDataProcessor:
             for file_path in skeleton_files:
                 data_file_paths.append([person_id, file_path])
 
-        # shuffle data_file_paths
-        np.random.seed(42)
-        np.random.shuffle(data_file_paths)
 
         for [person_id, file_path] in tqdm(data_file_paths):
             sequence_id = file_path.stem
@@ -267,6 +264,10 @@ class SkeletonDataProcessor:
         # Save metadata
         metadata_df = pd.DataFrame(metadata_list)
         metadata_df.to_csv(output_path + '/metadata.csv', index=False)
+
+        # delete the input dir
+        # os.rmdir(self.data_dir)
+
         with open(output_path + '/data.pkl', 'wb') as f:
           pickle.dump(self.all_sequences, f)
           

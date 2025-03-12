@@ -29,6 +29,7 @@ class SkeletonDatasetFromCSV(Dataset):
         self.is_Skeleton = is_Skeleton
         self.chunk_data = None
         self.loaded_chunk_number = -1
+        self.loaded_data = False
 
     def __len__(self):
         return len(self.metadata)
@@ -37,10 +38,13 @@ class SkeletonDatasetFromCSV(Dataset):
         # Get metadata for this sequence
         row = self.metadata.iloc[idx]
 
-        chunk = row['chunk']
-        if self.loaded_chunk_number != chunk:
-          with open(self.data_dir / f'data_{chunk}.pkl', 'rb') as f:
+        # chunk = row['chunk']
+        if not self.loaded_data:
+        #   print(f'Loading chunk {chunk}')
+          with open(self.data_dir / f'data.pkl', 'rb') as f:
             self.chunk_data = pickle.load(f)
+            self.loaded_data = True
+
       
           
         # Read sequence from CSV

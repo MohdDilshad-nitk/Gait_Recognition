@@ -6,7 +6,7 @@ from pathlib import Path
 import pickle
 
 class SkeletonDatasetFromCSV(Dataset):
-    def __init__(self, data_dir, split_metadata_file, is_Skeleton = True):
+    def __init__(self, data, data_dir, split_metadata_file, is_Skeleton = True):
         """
         Create a PyTorch dataset from processed CSV files for a specific split
 
@@ -27,25 +27,15 @@ class SkeletonDatasetFromCSV(Dataset):
         self.max_len = self.metadata['num_frames'].max()
 
         self.is_Skeleton = is_Skeleton
-        self.chunk_data = None
-        self.loaded_chunk_number = -1
-        self.loaded_data = False
+        self.chunk_data = data
+       
 
     def __len__(self):
         return len(self.metadata)
 
     def __getitem__(self, idx):
         # Get metadata for this sequence
-        row = self.metadata.iloc[idx]
-
-        # chunk = row['chunk']
-        if not self.loaded_data:
-          print('Loading data')
-          with open(self.data_dir / f'data.pkl', 'rb') as f:
-            self.chunk_data = pickle.load(f)
-            self.loaded_data = True
-
-      
+        row = self.metadata.iloc[idx]      
           
         # Read sequence from CSV
         sequence_df = self.chunk_data[row['file_name']]

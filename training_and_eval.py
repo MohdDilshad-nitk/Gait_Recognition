@@ -56,6 +56,8 @@ def train_and_eval(config):
 
     preprocessed_data_dir = output_dirs[preprocessing[-1]]
 
+    print(f"\n\nPreprocessed data directory: {preprocessed_data_dir}\n\n")
+
 
     is_skeleton = True
     if ('gait_features' in config['preprocess']):

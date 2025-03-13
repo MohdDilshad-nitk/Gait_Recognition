@@ -102,7 +102,7 @@ def print_evaluation_results(results):
     macro_avg = results['classification_report']['macro avg']
     print(f"Macro Avg - Precision: {macro_avg['precision']:.3f}, "
           f"Recall: {macro_avg['recall']:.3f}, "
-          f"F1-Score: {macro_avg['precision']:.3f}")
+          f"F1-Score: {macro_avg['f1-score']:.3f}")
     
     print("\nDetailed Classification Report:")
     # Print per-class metrics

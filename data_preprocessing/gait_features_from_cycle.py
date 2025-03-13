@@ -26,61 +26,110 @@ def save_features_chunk(output_dir, chunk_index):
     with open(chunk_file, 'wb') as f:
         pickle.dump(all_features, f)
 
+# def extract_gait_features_optimized(df):
+#     """Efficiently extracts gait features using vectorized operations."""
+#     distances = {}
+#     data_np = df.to_numpy().reshape(df.shape[0], -1, 3)  # Shape: (num_frames, num_joints, 3)
+    
+#     # Compute distances using vectorized operations
+#     for joint1, joint2 in BpLF_joint_pairs + JDF_joint_pairs:
+#         distances[f'Distance_{joint1}_{joint2}'] = np.linalg.norm(data_np[:, joint1] - data_np[:, joint2], axis=1)
+    
+#     # Compute angles using vectorized operations
+#     for j1, j2, j3 in angle_triplets:
+#         u = data_np[:, j1] - data_np[:, j2]
+#         v = data_np[:, j3] - data_np[:, j2]
+        
+#         dot_product = np.einsum('ij,ij->i', u, v)
+#         mag_u = np.linalg.norm(u, axis=1)
+#         mag_v = np.linalg.norm(v, axis=1)
+        
+#         with np.errstate(invalid='ignore', divide='ignore'):
+#             cosine_angles = np.clip(dot_product / (mag_u * mag_v), -1.0, 1.0)
+#             angles = np.arccos(cosine_angles)
+        
+        
+#         distances[f'Angle_{j1}_{j2}_{j3}'] = np.degrees(angles) / 360
+    
+#     # Compute inter-frame distances
+#     joints = [i for i in range(20) if i not in excluded_joints]
+#     inter_distances = np.linalg.norm(np.diff(data_np[:, joints], axis=0), axis=2)
+#     inter_distances = np.vstack([inter_distances, inter_distances[-1]])  # Repeat last row to match frame count
+    
+#     for idx, joint in enumerate(joints):
+#         distances[f'InterFrameDistance_Joint_{joint}'] = inter_distances[:, idx]
+    
+#     return pd.DataFrame(distances)
+
+
 def extract_gait_features_optimized(df):
     """Efficiently extracts gait features using vectorized operations."""
     distances = {}
     data_np = df.to_numpy().reshape(df.shape[0], -1, 3)  # Shape: (num_frames, num_joints, 3)
-    
-    # Compute distances using vectorized operations
+
+    # ✅ Compute distances using vectorized operations
     for joint1, joint2 in BpLF_joint_pairs + JDF_joint_pairs:
         distances[f'Distance_{joint1}_{joint2}'] = np.linalg.norm(data_np[:, joint1] - data_np[:, joint2], axis=1)
-    
-    # Compute angles using vectorized operations
+
+    # ✅ Compute angles using vectorized operations
+    epsilon = 1e-6
     for j1, j2, j3 in angle_triplets:
         u = data_np[:, j1] - data_np[:, j2]
         v = data_np[:, j3] - data_np[:, j2]
-        
+
+        # Dot product and magnitudes
+        # dot_product = np.sum(u * v, axis=1)
         dot_product = np.einsum('ij,ij->i', u, v)
-        mag_u = np.linalg.norm(u, axis=1)
-        mag_v = np.linalg.norm(v, axis=1)
-        
-        with np.errstate(invalid='ignore', divide='ignore'):
-            cosine_angles = np.clip(dot_product / (mag_u * mag_v), -1.0, 1.0)
-            angles = np.arccos(cosine_angles)
-        
-        
+        mag_u = np.sqrt(np.sum(u**2, axis=1))
+        mag_v = np.sqrt(np.sum(v**2, axis=1))
+
+        # Valid mask to avoid zero division
+        valid = (mag_u > epsilon) & (mag_v > epsilon)
+        cosine_angles = np.zeros_like(dot_product)
+        angles = np.zeros_like(dot_product)
+
+        # Compute angles where valid
+        cosine_angles[valid] = dot_product[valid] / (mag_u[valid] * mag_v[valid])
+        cosine_angles = np.clip(cosine_angles, -1.0, 1.0)
+        angles[valid] = np.arccos(cosine_angles[valid])
+
         distances[f'Angle_{j1}_{j2}_{j3}'] = np.degrees(angles) / 360
-    
-    # Compute inter-frame distances
+
+    # ✅ Compute inter-frame distances
     joints = [i for i in range(20) if i not in excluded_joints]
     inter_distances = np.linalg.norm(np.diff(data_np[:, joints], axis=0), axis=2)
-    inter_distances = np.vstack([inter_distances, inter_distances[-1]])  # Repeat last row to match frame count
-    
+
+    # Pad last row to match frame count
+    last_row = inter_distances[-1] if len(inter_distances) > 0 else np.zeros(len(joints))
+    inter_distances = np.vstack([inter_distances, last_row])
+
     for idx, joint in enumerate(joints):
         distances[f'InterFrameDistance_Joint_{joint}'] = inter_distances[:, idx]
-    
-    return pd.DataFrame(distances)
+
+    # if any(np.any(np.isnan(val)) for val in distances.values()):
+    #     print("found nan")
+
+    # ✅ FINAL NaN handling — replace all NaNs at once (fast and memory-efficient)
+    distances_df = pd.DataFrame(distances).fillna(0)
+
+    return distances_df
 
 def extract_gait_features_from_cycles(input_dir, output_dir):
     """Processes all gait cycle data and saves optimized feature extractions."""
     print("\nStarting batch-optimized gait feature extraction...")
+    print("input directory: ", input_dir, ", output directory: ", output_dir)
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    # chunk_index = 0
-    # chunk_files = sorted([f for f in os.listdir(input_dir) if f.startswith('data_') and f.endswith('.pkl')])
-    # chunk_files = ['data_4.pkl', 'data_5.pkl']
     global all_features, gait_cycle_data
-    
-    # for chunk_file in chunk_files:
+
     input_file_path = os.path.join(input_dir, 'data.pkl')
-    # print(f"Processing {chunk_file}...")
+    
 
     # Load chunk data
     with open(input_file_path, 'rb') as f:
         gait_cycle_data = pickle.load(f)
 
-    # all_features = {}  # Store processed features temporarily
-
+   
     for filename, df in tqdm(gait_cycle_data.items()):
         if not filename.endswith('.csv') or filename == 'metadata.csv':
             continue
@@ -104,23 +153,10 @@ def extract_gait_features_from_cycles(input_dir, output_dir):
             
         })
 
-        # Save the processed chunk
-        # save_features_chunk(output_dir, chunk_index)
-
-        # Explicitly delete objects and collect garbage
-        # del all_features
-        # del gait_cycle_data
-        # gc.collect()
-
-        # all_features = {}
-
-        # chunk_index += 1  # Move to the next chunk index
     
     # Save metadata
     pd.DataFrame(metadata_list).to_csv(os.path.join(output_dir, 'metadata.csv'), index=False)
     
-    # delete the input dir
-    # shutil.rmtree(input_dir)
     os.remove(input_file_path)
 
     with open(os.path.join(output_dir, 'data.pkl'), 'wb') as f:

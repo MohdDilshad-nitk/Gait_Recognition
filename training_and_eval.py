@@ -174,6 +174,9 @@ def train_and_eval(config):
     print_evaluation_results(results)
     plot_confusion_matrix(results['confusion_matrix'])
 
+    with open(f'evaluation_results_{epochs}.txt', 'w') as f:
+        f.write(str(results))
+
     # Save confusion matrix
     pd.DataFrame(results['confusion_matrix']).to_csv(f'confusion_matrix_{epochs}.csv')
 

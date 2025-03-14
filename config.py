@@ -15,6 +15,7 @@ config = {
         'num_encoder_layers':1,
         'rope' : False,
         'contrastive' : False,
+        # 'contrastive_weight' : 0.5,
         'k_fold' : False,
         'epochs' : 60
     },

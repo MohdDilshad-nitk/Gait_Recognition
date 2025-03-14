@@ -68,11 +68,9 @@ def train_and_eval(config):
     dataset = None
 
     if config['training']['k_fold']:
-        # Create datasets
-        dataset = SkeletonDatasetFromCSV(preprocessed_data_dir, f'{preprocessed_data_dir}/metadata.csv', is_Skeleton=is_skeleton)
-
-    #test loader is required for evaluation
-    train_loader, val_loader, test_loader = create_data_loaders(training_data_dir = preprocessed_data_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32)
+        train_val_loader, test_loader, train_val_dataset, test_dataset = create_data_loaders(training_data_dir = preprocessed_data_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32, return_dataset=True)
+    else:
+        train_loader, val_loader, test_loader = create_data_loaders(training_data_dir = preprocessed_data_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32)
 
 
 
@@ -120,11 +118,14 @@ def train_and_eval(config):
 
     trainer = None
 
-    if config['training']['contrastive']:
+    if config['training'].get('contrastive', False):
+
+        contrastive_weight = config['training'].get('contrastive_weight', 0.5)
         trainer = ContSkeletonTransformerTrainer(
             model=model,
             train_loader=train_loader,
             val_loader=val_loader,
+            contrastive_weight=contrastive_weight,
             save_dir=drive_checkpoint_dir
         )
     else:
@@ -155,7 +156,7 @@ def train_and_eval(config):
         trainer.train_k_fold(
             num_epochs=epochs,
             k_folds=5,
-            dataset= dataset,
+            dataset= train_val_dataset,
             resume_path=latest_checkpoint  # Set to checkpoint path to resume training
         )
     else:

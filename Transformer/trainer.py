@@ -8,6 +8,7 @@ from typing import Dict, Tuple
 from sklearn.model_selection import KFold
 import numpy as np
 from sklearn.metrics import precision_score, recall_score, f1_score
+from tqdm import tqdm
 
 
 class SkeletonTransformerTrainer:
@@ -53,7 +54,7 @@ class SkeletonTransformerTrainer:
         # Add progress bar for validation
         # val_pbar = tqdm(self.val_loader, desc='Validating', leave=False)
 
-        for batch in self.val_loader:
+        for batch in tqdm(self.val_loader, desc="Validation"):
             sequence = batch['sequence'].to(self.device)
             attention_mask = batch['attention_mask'].to(self.device)
             person_id = batch['person_id'].to(self.device)
@@ -155,7 +156,7 @@ class SkeletonTransformerTrainer:
         all_preds = []
         all_labels = []
 
-        for batch in self.train_loader:
+        for batch in tqdm(self.train_loader, desc="Training"):
             sequence = batch['sequence'].to(self.device)
             attention_mask = batch['attention_mask'].to(self.device)
             person_id = batch['person_id'].to(self.device)
@@ -196,6 +197,7 @@ class SkeletonTransformerTrainer:
 
 
         for epoch in range(start_epoch, num_epochs):
+            print(f"\nEpoch {epoch+1}/{num_epochs}")
             train_metrics = self.train_epoch()
             val_metrics = self.validate()
 
@@ -212,7 +214,7 @@ class SkeletonTransformerTrainer:
             self.save_checkpoint(epoch, metrics, is_best)
 
             # Print detailed metrics every epoch
-            print(f"\nEpoch {epoch+1}/{num_epochs}")
+            print("\nTraining metrics")
             for k, v in metrics.items():
                 if isinstance(v, tuple):
                     formatted_values = tuple(f"{x:.4f}" for x in v)

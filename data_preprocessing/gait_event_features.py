@@ -87,7 +87,7 @@ def extract_gait_events(df, file_path):
         'num_frames': len(percentages)
     })
 
-    all_features[file_path] = results_df
+    all_features[f"{file_path}.csv"] = results_df
 
 
 def extract_gait_events_and_features_from_cycles(input_dir, output_dir):
@@ -107,7 +107,7 @@ def extract_gait_events_and_features_from_cycles(input_dir, output_dir):
 
     for filename, df in tqdm(data.items()):
         if filename.endswith('.csv') and filename != 'metadata.csv':
-            extract_gait_events(df, filename)
+            extract_gait_events(df, filename[:-4])
 
 
     # shutil.rmtree(input_dir)

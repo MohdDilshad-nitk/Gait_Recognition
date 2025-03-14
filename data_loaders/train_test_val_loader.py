@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .dataset_from_csv import SkeletonDatasetFromCSV
 
-def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42):
+def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42, return_dataset = False):
     """
     Create train, validation, and test splits from processed CSV data
     with fixed allocation: 3 for training, 1 for validation, 1 for testing.
@@ -77,6 +77,9 @@ def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42):
     val_metadata.to_csv(Path(data_dir) / 'val_metadata.csv', index=False)
     test_metadata.to_csv(Path(data_dir) / 'test_metadata.csv', index=False)
 
+    k_fold_combined_train_val_metadta = pd.concat([train_metadata, val_metadata], ignore_index=True)
+    k_fold_combined_train_val_metadta.to_csv(Path(data_dir) / 'k_fold_combined_train_val_metadata.csv', index=False)
+
     # Print distribution statistics
     print("\nData split statistics:")
     print(f"Total number of people: {len(person_groups)}")
@@ -89,24 +92,36 @@ def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42):
       print('Loaded data')
 
     # Create datasets
-    train_dataset = SkeletonDatasetFromCSV(data, data_dir, 'train_metadata.csv', is_Skeleton = is_skeleton)
-    val_dataset = SkeletonDatasetFromCSV(data, data_dir, 'val_metadata.csv', is_Skeleton = is_skeleton)
-    test_dataset = SkeletonDatasetFromCSV(data, data_dir, 'test_metadata.csv', is_Skeleton = is_skeleton)
+    if return_dataset:
 
-    # Create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size)
+        train_val_dataset = SkeletonDatasetFromCSV(data, data_dir, 'k_fold_combined_train_val_metadata.csv', is_Skeleton = is_skeleton)
+        test_dataset = SkeletonDatasetFromCSV(data, data_dir, 'test_metadata.csv', is_Skeleton = is_skeleton)
+        
+        train_loader = DataLoader(train_val_dataset, batch_size=batch_size, shuffle=True)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-    return train_loader, val_loader, test_loader
+        return train_loader, test_loader, train_val_dataset, test_dataset
+    else:
+
+        train_dataset = SkeletonDatasetFromCSV(data, data_dir, 'train_metadata.csv', is_Skeleton = is_skeleton)
+        val_dataset = SkeletonDatasetFromCSV(data, data_dir, 'val_metadata.csv', is_Skeleton = is_skeleton)
+        test_dataset = SkeletonDatasetFromCSV(data, data_dir, 'test_metadata.csv', is_Skeleton = is_skeleton)
+
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=batch_size)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size)
+        
+        return train_loader, val_loader, test_loader
+
+    # return train_loader, val_loader, test_loader
 
 
 
 # # Create data loaders and print sample batch
-def create_data_loaders(training_data_dir, base_data_dir ,is_skeleton = True, batch_size=32):
+def create_data_loaders(training_data_dir, base_data_dir ,is_skeleton = True, batch_size=32, return_dataset = False):
     try:
         # Create data loaders
-        train_loader, val_loader, test_loader = create_fixed_splits(data_dir=training_data_dir, is_skeleton =  is_skeleton, batch_size=32)
+        train_loader, val_loader, test_loader = create_fixed_splits(data_dir=training_data_dir, is_skeleton =  is_skeleton, batch_size=batch_size, return_dataset = return_dataset)
 
         print(f"Number of training batches: {len(train_loader)}")
         print(f"Number of validation batches: {len(val_loader)}")

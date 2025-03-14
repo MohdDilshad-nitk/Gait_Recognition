@@ -1,3 +1,4 @@
+import pickle
 import torch
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
@@ -67,6 +68,10 @@ def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42):
     val_metadata = val_metadata.sample(frac=1, random_state=seed).reset_index(drop=True)
     test_metadata = test_metadata.sample(frac=1, random_state=seed).reset_index(drop=True)
 
+    # train_metadata = train_metadata.sort_values(by=['chunk'])
+    # val_metadata = val_metadata.sort_values(by=['chunk'])    
+    # test_metadata = test_metadata.sort_values(by=['chunk'])
+
     # Save split metadata
     train_metadata.to_csv(Path(data_dir) / 'train_metadata.csv', index=False)
     val_metadata.to_csv(Path(data_dir) / 'val_metadata.csv', index=False)
@@ -79,10 +84,14 @@ def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42):
     print(f"Validation samples: {len(val_metadata)}")
     print(f"Test samples: {len(test_metadata)}")
 
+    with open(data_dir + '/data.pkl', 'rb') as f:
+      data = pickle.load(f)
+      print('Loaded data')
+
     # Create datasets
-    train_dataset = SkeletonDatasetFromCSV(data_dir, 'train_metadata.csv', is_Skeleton = is_skeleton)
-    val_dataset = SkeletonDatasetFromCSV(data_dir, 'val_metadata.csv', is_Skeleton = is_skeleton)
-    test_dataset = SkeletonDatasetFromCSV(data_dir, 'test_metadata.csv', is_Skeleton = is_skeleton)
+    train_dataset = SkeletonDatasetFromCSV(data, data_dir, 'train_metadata.csv', is_Skeleton = is_skeleton)
+    val_dataset = SkeletonDatasetFromCSV(data, data_dir, 'val_metadata.csv', is_Skeleton = is_skeleton)
+    test_dataset = SkeletonDatasetFromCSV(data, data_dir, 'test_metadata.csv', is_Skeleton = is_skeleton)
 
     # Create data loaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)

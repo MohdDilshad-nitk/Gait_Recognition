@@ -98,6 +98,12 @@ def print_evaluation_results(results):
     print(f"Test Loss: {results['test_loss']:.4f}")
     print(f"Accuracy: {results['accuracy']*100:.2f}%")
 
+    print("\nOverall Metrics:")
+    macro_avg = results['classification_report']['macro avg']
+    print(f"Macro Avg - Precision: {macro_avg['precision']:.3f}, "
+          f"Recall: {macro_avg['recall']:.3f}, "
+          f"F1-Score: {macro_avg['f1-score']:.3f}")
+    
     print("\nDetailed Classification Report:")
     # Print per-class metrics
     for class_id in results['classification_report'].keys():
@@ -109,11 +115,6 @@ def print_evaluation_results(results):
             print(f"F1-Score: {metrics['f1-score']:.3f}")
             print(f"Support: {metrics['support']}")
 
-    print("\nOverall Metrics:")
-    macro_avg = results['classification_report']['macro avg']
-    print(f"Macro Avg - Precision: {macro_avg['precision']:.3f}, "
-          f"Recall: {macro_avg['recall']:.3f}, "
-          f"F1-Score: {macro_avg['precision']:.3f}")
 
 # Example usage:
 

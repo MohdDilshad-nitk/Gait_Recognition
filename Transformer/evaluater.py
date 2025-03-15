@@ -104,16 +104,16 @@ def print_evaluation_results(results):
           f"Recall: {macro_avg['recall']:.3f}, "
           f"F1-Score: {macro_avg['f1-score']:.3f}")
     
-    print("\nDetailed Classification Report:")
-    # Print per-class metrics
-    for class_id in results['classification_report'].keys():
-        if class_id not in ['accuracy', 'macro avg', 'weighted avg']:
-            metrics = results['classification_report'][class_id]
-            print(f"\nClass {class_id}:")
-            print(f"Precision: {metrics['precision']:.3f}")
-            print(f"Recall: {metrics['recall']:.3f}")
-            print(f"F1-Score: {metrics['f1-score']:.3f}")
-            print(f"Support: {metrics['support']}")
+    # print("\nDetailed Classification Report:")
+    # # Print per-class metrics
+    # for class_id in results['classification_report'].keys():
+    #     if class_id not in ['accuracy', 'macro avg', 'weighted avg']:
+    #         metrics = results['classification_report'][class_id]
+    #         print(f"\nClass {class_id}:")
+    #         print(f"Precision: {metrics['precision']:.3f}")
+    #         print(f"Recall: {metrics['recall']:.3f}")
+    #         print(f"F1-Score: {metrics['f1-score']:.3f}")
+    #         print(f"Support: {metrics['support']}")
 
 
 # Example usage:

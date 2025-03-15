@@ -322,7 +322,7 @@ def extract_gait_cycles_from_csv(input_dir, output_dir):
 
   return output_dir
 
-def extract_gait_cycles_from_csv_gsg(input_dir, output_dir):
+def extract_gait_cycles_from_csv_iigc(input_dir, output_dir):
 
   print("\n\nStarting gait cycle extraction...")
   print("input directory: ", input_dir, ", output directory: ", output_dir)

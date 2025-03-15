@@ -5,6 +5,7 @@ config = {
     'preprocess' : ['transform',
                     'augment',
                     'gait_cycles',
+                    #gait_cycles_iigc
                     'gait_features',
                     'event_features'],
 

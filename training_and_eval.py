@@ -48,7 +48,7 @@ def train_and_eval(config):
         'transform': csv_data_dir,
         'augment': augmented_data_dir,
         'gait_cycles': gait_cycles_dir,
-        'gait_cycles_gsg': gait_cycles_dir,
+        'gait_cycles_iigc': gait_cycles_dir,
         'gait_features': gait_features_dir,
         'event_features': gait_event_features_dir
     }
@@ -79,7 +79,7 @@ def train_and_eval(config):
     if ('gait_cycles' in config['preprocess']) or ('gait_features' in config['preprocess']):
         max_len = 256
 
-    if ('gait_cycles_gsg' in config['preprocess']):
+    if ('gait_cycles_iigc' in config['preprocess']):
         max_len =1024
 
     if ('event_features' in config['preprocess']):

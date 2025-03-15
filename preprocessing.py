@@ -11,7 +11,7 @@ from data_preprocessing.data_augmentation import augment_skeleton_data
 # from Transformer.model import SkeletonTransformer
 # from Transformer.trainer import SkeletonTransformerTrainer
 # from Transformer.evaluater import evaluate_model, print_evaluation_results, plot_confusion_matrix
-from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_csv, extract_gait_cycles_from_csv_gsg
+from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_csv, extract_gait_cycles_from_csv_iigc
 from data_preprocessing.gait_features_from_cycle import extract_gait_features_from_cycles
 from data_preprocessing.gait_event_features import extract_gait_events_and_features_from_cycles
 
@@ -53,7 +53,7 @@ def preprocessor(config):
         'transform': process_skeleton_data,
         'augment': augment_skeleton_data,
         'gait_cycles': extract_gait_cycles_from_csv,
-        'gait_cycles_gsg': extract_gait_cycles_from_csv_gsg,
+        'gait_cycles_iigc': extract_gait_cycles_from_csv_iigc,
         'gait_features': extract_gait_features_from_cycles,
         'event_features': extract_gait_events_and_features_from_cycles
     }
@@ -62,7 +62,7 @@ def preprocessor(config):
         'transform': csv_data_dir,
         'augment': augmented_data_dir,
         'gait_cycles': gait_cycles_dir,
-        'gait_cycles_gsg': gait_cycles_dir,
+        'gait_cycles_iigc': gait_cycles_dir,
         'gait_features': gait_features_dir,
         'event_features': gait_event_features_dir
     }

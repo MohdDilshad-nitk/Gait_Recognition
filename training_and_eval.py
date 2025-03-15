@@ -2,21 +2,16 @@ import numpy as np
 import pandas as pd
 import os
 import torch
+import glob
 
 from Transformer.contrastive_trainer import ContSkeletonTransformerTrainer
-from data_loaders.dataset_from_csv import SkeletonDatasetFromCSV
-# from data_preprocessing.kgdb_to_csv import process_skeleton_data
-# from data_preprocessing.data_augmentation import augment_skeleton_data
-from data_loaders.train_test_val_loader import create_data_loaders
-from Transformer.model import SkeletonTransformer
 from Transformer.trainer import SkeletonTransformerTrainer
+
+from Transformer.model import SkeletonTransformer
 from Transformer.evaluater import evaluate_model, print_evaluation_results, plot_confusion_matrix
-# from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_csv, extract_gait_cycles_from_csv_gsg
-# from data_preprocessing.gait_features_from_cycle import extract_gait_features_from_cycles
-# from data_preprocessing.gait_event_features import extract_gait_events_and_features_from_cycles
 
+from data_loaders.train_test_val_loader import create_data_loaders
 
-import glob
 
 def train_and_eval(config):
 
@@ -78,10 +73,8 @@ def train_and_eval(config):
 
     if ('gait_cycles' in config['preprocess']) or ('gait_features' in config['preprocess']):
         max_len = 256
-
     if ('gait_cycles_iigc' in config['preprocess']):
         max_len =1024
-
     if ('event_features' in config['preprocess']):
         max_len = 8
 

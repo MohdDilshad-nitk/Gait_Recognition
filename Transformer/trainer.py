@@ -51,8 +51,6 @@ class SkeletonTransformerTrainer:
         all_preds = []
         all_labels = []
 
-        # Add progress bar for validation
-        # val_pbar = tqdm(self.val_loader, desc='Validating', leave=False)
 
         for batch in tqdm(self.val_loader, desc="Validation"):
             sequence = batch['sequence'].to(self.device)
@@ -69,10 +67,6 @@ class SkeletonTransformerTrainer:
 
             all_preds.extend(pred.cpu().numpy())
             all_labels.extend(person_id.cpu().numpy())
-
-            # Update progress bar with current accuracy
-            # current_accuracy = correct / max(total, 1)
-            # val_pbar.set_postfix({'accuracy': f'{current_accuracy:.4f}'})
 
         # Compute precision, recall, and F1-score
         precision = precision_score(all_labels, all_preds, average='weighted', zero_division=0)

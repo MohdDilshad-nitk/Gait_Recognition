@@ -2,26 +2,19 @@ import numpy as np
 import pandas as pd
 import os
 import torch
+import glob
 
 from Transformer.contrastive_trainer import ContSkeletonTransformerTrainer
-from data_loaders.dataset_from_csv import SkeletonDatasetFromCSV
 from data_preprocessing.kgdb_to_csv import process_skeleton_data
 from data_preprocessing.data_augmentation import augment_skeleton_data
 from data_loaders.train_test_val_loader import create_data_loaders
 from Transformer.model import SkeletonTransformer
 from Transformer.trainer import SkeletonTransformerTrainer
 from Transformer.evaluater import evaluate_model, print_evaluation_results, plot_confusion_matrix
-from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_csv, extract_gait_cycles_from_csv_gsg
+from data_preprocessing.gait_cycle_extraction import extract_gait_cycles_from_csv, extract_gait_cycles_from_csv_iigc
 from data_preprocessing.gait_features_from_cycle import extract_gait_features_from_cycles
 from data_preprocessing.gait_event_features import extract_gait_events_and_features_from_cycles
 
-
-from config import config
-import glob
-# from datetime import datetime
-
-#TODO: Check and update max_len in model.py, check what are the maximum number of frames in the dataset, generally for gait cycle its very less like around 30-40, so having maxlen as 5000 is unnecessary
-# also for normal case the max number of frames is i guess around 1000(check onnce) so we can set max_len to 1000-1500 try to keep it a power of 2
 
 def main_train_code(config):
 
@@ -31,7 +24,7 @@ def main_train_code(config):
 
 
     # Directory containing the dataset
-    base_dir = config['base_dir'] #'/kaggle/working/Gait_Recognition-main'
+    base_dir = config['base_dir'] 
     base_data_dir = base_dir + '/data'
     raw_data_dir = base_data_dir + '/Data'
     csv_data_dir = base_data_dir + '/CSVData'
@@ -53,7 +46,7 @@ def main_train_code(config):
         'transform': process_skeleton_data,
         'augment': augment_skeleton_data,
         'gait_cycles': extract_gait_cycles_from_csv,
-        'gait_cycles_gsg': extract_gait_cycles_from_csv_gsg,
+        'gait_cycles_iigc': extract_gait_cycles_from_csv_iigc,
         'gait_features': extract_gait_features_from_cycles,
         'event_features': extract_gait_events_and_features_from_cycles
     }
@@ -62,16 +55,16 @@ def main_train_code(config):
         'transform': csv_data_dir,
         'augment': augmented_data_dir,
         'gait_cycles': gait_cycles_dir,
-        'gait_cycles_gsg': gait_cycles_dir,
+        'gait_cycles_iigc': gait_cycles_dir,
         'gait_features': gait_features_dir,
         'event_features': gait_event_features_dir
     }
 
 
     # preprocessing
-    prev_dir = raw_data_dir
+    preprocessed_data_dir = raw_data_dir
     for func in preprocessing:
-        prev_dir = preprocessing_funcs[func](prev_dir,output_dirs[func])
+        preprocessed_data_dir = preprocessing_funcs[func](preprocessed_data_dir,output_dirs[func])
 
 
 
@@ -85,19 +78,21 @@ def main_train_code(config):
     dataset = None
 
     if config['training']['k_fold']:
-        # Create datasets
-        dataset = SkeletonDatasetFromCSV(prev_dir, f'{prev_dir}/metadata.csv', is_Skeleton=is_skeleton)
-
-    #test loader is required for evaluation
-    train_loader, val_loader, test_loader = create_data_loaders(training_data_dir = prev_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32)
+        train_val_loader, test_loader, train_val_dataset, test_dataset = create_data_loaders(training_data_dir = preprocessed_data_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32, return_dataset=True)
+    else:
+        train_loader, val_loader, test_loader = create_data_loaders(training_data_dir = preprocessed_data_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32)
 
 
 
-    max_len = 5000
+    max_len = 2048
+
     if ('gait_cycles' in config['preprocess']) or ('gait_features' in config['preprocess']):
-        max_len = 128
+        max_len = 256
+    if ('gait_cycles_iigc' in config['preprocess']):
+        max_len =1024
     if ('event_features' in config['preprocess']):
         max_len = 8
+
 
 
     d_model = 60
@@ -110,6 +105,12 @@ def main_train_code(config):
     rope = config['training']['rope']
     heads = config['training']['nhead']
     layers = config['training']['num_encoder_layers']
+
+    if 'max_len' in config['training']:
+        max_len = config['training']['max_len']
+
+    if 'd_model' in config['training']:
+        d_model = config['training']['d_model']
 
     # Create model and trainer
     model = SkeletonTransformer(
@@ -126,11 +127,14 @@ def main_train_code(config):
 
     trainer = None
 
-    if config['training']['contrastive']:
+    if config['training'].get('contrastive', False):
+
+        contrastive_weight = config['training'].get('contrastive_weight', 0.5)
         trainer = ContSkeletonTransformerTrainer(
             model=model,
             train_loader=train_loader,
             val_loader=val_loader,
+            contrastive_weight=contrastive_weight,
             save_dir=drive_checkpoint_dir
         )
     else:
@@ -161,7 +165,7 @@ def main_train_code(config):
         trainer.train_k_fold(
             num_epochs=epochs,
             k_folds=5,
-            dataset= dataset,
+            dataset= train_val_dataset,
             resume_path=latest_checkpoint  # Set to checkpoint path to resume training
         )
     else:
@@ -180,6 +184,9 @@ def main_train_code(config):
     print_evaluation_results(results)
     plot_confusion_matrix(results['confusion_matrix'])
 
+    with open(f'evaluation_results_{epochs}.txt', 'w') as f:
+        f.write(str(results))
+
     # Save confusion matrix
     pd.DataFrame(results['confusion_matrix']).to_csv(f'confusion_matrix_{epochs}.csv')
 
@@ -188,24 +195,5 @@ def main_train_code(config):
 
 
 if __name__ == '__main__':
-#     config = {
-    
-    
-#         'preprocess' : ['transform',
-#                         'augment',
-#                         'gait_cycles',
-#                         'gait_features',
-#                         'event_features'],
-
-#         'drive_checkpoint_path' : '/content/drive/My Drive/trained_gait_model_checkpoints',
-
-#         'training' : {
-#             'nhead':1,
-#             'num_encoder_layers':1,
-#             'rope' : True,
-#             'contrastive' : True,
-#             'k_fold' : False,
-#             'epochs' : 60
-#         },
-# }
+    from config import config
     main_train_code(config)

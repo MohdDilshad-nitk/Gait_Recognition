@@ -116,14 +116,3 @@ def print_evaluation_results(results):
     #         print(f"Support: {metrics['support']}")
 
 
-# Example usage:
-
-
-# # Evaluate model
-# results = evaluate_model(model, test_loader,)
-
-# # Print results
-# print_evaluation_results(results)
-
-# # Plot confusion matrix
-# plot_confusion_matrix(results['confusion_matrix'])

@@ -5,7 +5,7 @@ config = {
     'preprocess' : ['transform',
                     'augment',
                     'gait_cycles',
-                    #gait_cycles_iigc
+                    #gait_cycles_iigc,
                     'gait_features',
                     'event_features'],
 
@@ -25,18 +25,9 @@ config = {
 
 }
 
-# rope : True/False, contrastive: True/False * {
-
-# ['transform','gait_cycles','gait_features']
-# ['transform','gait_cycles','gait_features','event_features']
-
-# ['transform','augment']
-# ['transform','augment', 'gait_cycles']
-# ['transform','augment', 'gait_cycles', 'gait_features']
-# ['transform','augment', 'gait_cycles', 'gait_features', 'event_features']
-
-# ['transform', 'gait_cycles','augment']
-# ['transform', 'gait_cycles','augment', 'gait_features']
-# ['transform', 'gait_cycles','augment', 'gait_features', 'event_features']
-
-# }
+# rope : True/False
+# contrastive: True/False 
+# k_fold: True/False
+# base_dir: '/content/Code' for colab, '/kaggle/working/Code' for kaggle
+# preprocess: ['transform','augment', 'gait_cycles', 'gait_cycles_iigc', 'gait_features', 'event_features']
+# drive_checkpoint_path: '/content/drive/My Drive/trained_gait_model_checkpoints' for colab, '/kaggle/working/trained_gait_model_checkpoints' for kaggle

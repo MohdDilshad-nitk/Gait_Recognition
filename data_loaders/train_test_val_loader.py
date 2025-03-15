@@ -39,16 +39,6 @@ def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42, re
         sequences = group.sample(frac=1, random_state=seed).reset_index(drop=True)
         n_sequences = len(sequences)
 
-        # if n_sequences >= 5:
-        #     # Take first sequence for validation, second for testing
-        #     # and remaining (including any beyond 5) for training
-        #     val_rows.append(sequences.iloc[0:1])
-        #     test_rows.append(sequences.iloc[1:2])
-        #     train_rows.append(sequences.iloc[2:])
-
-        # else:
-        #     # If less than 5 sequences, use the first 60% for training,
-        #     # 20% for validation, and 20% for testing
         n_train = max(1, int(n_sequences * 0.6))
         n_test = max(1, int(n_sequences * 0.2))
 
@@ -67,10 +57,6 @@ def create_fixed_splits(data_dir, is_skeleton = True, batch_size=32, seed=42, re
     train_metadata = train_metadata.sample(frac=1, random_state=seed).reset_index(drop=True)
     val_metadata = val_metadata.sample(frac=1, random_state=seed).reset_index(drop=True)
     test_metadata = test_metadata.sample(frac=1, random_state=seed).reset_index(drop=True)
-
-    # train_metadata = train_metadata.sort_values(by=['chunk'])
-    # val_metadata = val_metadata.sort_values(by=['chunk'])    
-    # test_metadata = test_metadata.sort_values(by=['chunk'])
 
     # Save split metadata
     train_metadata.to_csv(Path(data_dir) / 'train_metadata.csv', index=False)

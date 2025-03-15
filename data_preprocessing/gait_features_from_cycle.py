@@ -19,48 +19,6 @@ BpLF_joint_pairs = [(0, 1), (1, 10), (10, 11), (12, 14), (14, 16), (13, 15), (15
 excluded_joints = {0, 1, 10, 11}  # Set for faster lookup
 
 
-# def save_features_chunk(output_dir, chunk_index):
-#     global all_features
-#     """Saves the current batch of processed features and clears memory."""
-#     chunk_file = os.path.join(output_dir, f"data_{chunk_index}.pkl")
-#     with open(chunk_file, 'wb') as f:
-#         pickle.dump(all_features, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-# def extract_gait_features_optimized(df):
-#     """Efficiently extracts gait features using vectorized operations."""
-#     distances = {}
-#     data_np = df.to_numpy().reshape(df.shape[0], -1, 3)  # Shape: (num_frames, num_joints, 3)
-    
-#     # Compute distances using vectorized operations
-#     for joint1, joint2 in BpLF_joint_pairs + JDF_joint_pairs:
-#         distances[f'Distance_{joint1}_{joint2}'] = np.linalg.norm(data_np[:, joint1] - data_np[:, joint2], axis=1)
-    
-#     # Compute angles using vectorized operations
-#     for j1, j2, j3 in angle_triplets:
-#         u = data_np[:, j1] - data_np[:, j2]
-#         v = data_np[:, j3] - data_np[:, j2]
-        
-#         dot_product = np.einsum('ij,ij->i', u, v)
-#         mag_u = np.linalg.norm(u, axis=1)
-#         mag_v = np.linalg.norm(v, axis=1)
-        
-#         with np.errstate(invalid='ignore', divide='ignore'):
-#             cosine_angles = np.clip(dot_product / (mag_u * mag_v), -1.0, 1.0)
-#             angles = np.arccos(cosine_angles)
-        
-        
-#         distances[f'Angle_{j1}_{j2}_{j3}'] = np.degrees(angles) / 360
-    
-#     # Compute inter-frame distances
-#     joints = [i for i in range(20) if i not in excluded_joints]
-#     inter_distances = np.linalg.norm(np.diff(data_np[:, joints], axis=0), axis=2)
-#     inter_distances = np.vstack([inter_distances, inter_distances[-1]])  # Repeat last row to match frame count
-    
-#     for idx, joint in enumerate(joints):
-#         distances[f'InterFrameDistance_Joint_{joint}'] = inter_distances[:, idx]
-    
-#     return pd.DataFrame(distances)
-
 
 def extract_gait_features_optimized(df):
     """Efficiently extracts gait features using vectorized operations."""
@@ -137,7 +95,6 @@ def extract_gait_features_from_cycles(input_dir, output_dir):
         input_file = filename[:-4]
         features_df = extract_gait_features_optimized(df)
 
-        # output_file = os.path.join(output_dir, f"{input_file}.csv")
         all_features[f"{input_file}.csv"] = features_df
     
 
@@ -162,5 +119,5 @@ def extract_gait_features_from_cycles(input_dir, output_dir):
     with open(os.path.join(output_dir, 'data.pkl'), 'wb') as f:
         pickle.dump(all_features, f, protocol=pickle.HIGHEST_PROTOCOL)
     
-    print("Batch-optimized gait feature extraction completed.\n")
+    print("gait feature extraction completed.\n")
     return output_dir

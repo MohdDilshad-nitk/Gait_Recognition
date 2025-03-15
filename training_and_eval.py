@@ -74,7 +74,7 @@ def train_and_eval(config):
 
 
 
-    max_len = 1024
+    max_len = 2048
 
     if ('gait_cycles' in config['preprocess']) or ('gait_features' in config['preprocess']):
         max_len = 256

@@ -410,7 +410,7 @@ class SkeletonDataAugmenter:
         os.remove(self.processed_data_dir / 'data.pkl')
         # Save all augmented sequences
         with open(self.output_dir / 'data.pkl', 'wb') as f:
-          pickle.dump(self.all_augments, f)
+          pickle.dump(self.all_augments, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def augment_skeleton_data(processed_data_dir, output_dir, num_augmentations=10):
     """

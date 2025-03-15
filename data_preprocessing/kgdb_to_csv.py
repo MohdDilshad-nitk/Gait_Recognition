@@ -269,7 +269,7 @@ class SkeletonDataProcessor:
         # shutil.rmtree(self.data_dir)
 
         with open(output_path + '/data.pkl', 'wb') as f:
-          pickle.dump(self.all_sequences, f)
+          pickle.dump(self.all_sequences, f, protocol=pickle.HIGHEST_PROTOCOL)
           
         del self.all_sequences
 

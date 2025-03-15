@@ -310,7 +310,7 @@ def extract_gait_cycles_from_csv(input_dir, output_dir):
   os.remove(input_dir + '/data.pkl')
   #save the final_cycles in pickle format
   with open(output_dir + '/data.pkl', 'wb') as f:
-    pickle.dump(final_cycles, f)
+    pickle.dump(final_cycles, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
   # Save metadata
@@ -342,7 +342,7 @@ def extract_gait_cycles_from_csv_iigc(input_dir, output_dir):
   os.remove(input_dir + '/data.pkl')
   # #save the final_cycles in pickle format
   with open(output_dir + '/data.pkl', 'wb') as f:
-    pickle.dump(final_cycles, f)
+    pickle.dump(final_cycles, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
   # Save metadata

@@ -113,7 +113,7 @@ def extract_gait_events_and_features_from_cycles(input_dir, output_dir):
     # shutil.rmtree(input_dir)
     os.remove(input_dir + '/data.pkl')
     with open(output_dir + '/data.pkl', 'wb') as f:
-        pickle.dump(all_features, f)
+        pickle.dump(all_features, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     # Save metadata
     metadata_df = pd.DataFrame(metadata_list)

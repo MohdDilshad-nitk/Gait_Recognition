@@ -19,12 +19,12 @@ BpLF_joint_pairs = [(0, 1), (1, 10), (10, 11), (12, 14), (14, 16), (13, 15), (15
 excluded_joints = {0, 1, 10, 11}  # Set for faster lookup
 
 
-def save_features_chunk(output_dir, chunk_index):
-    global all_features
-    """Saves the current batch of processed features and clears memory."""
-    chunk_file = os.path.join(output_dir, f"data_{chunk_index}.pkl")
-    with open(chunk_file, 'wb') as f:
-        pickle.dump(all_features, f)
+# def save_features_chunk(output_dir, chunk_index):
+#     global all_features
+#     """Saves the current batch of processed features and clears memory."""
+#     chunk_file = os.path.join(output_dir, f"data_{chunk_index}.pkl")
+#     with open(chunk_file, 'wb') as f:
+#         pickle.dump(all_features, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 # def extract_gait_features_optimized(df):
 #     """Efficiently extracts gait features using vectorized operations."""
@@ -160,7 +160,7 @@ def extract_gait_features_from_cycles(input_dir, output_dir):
     os.remove(input_file_path)
 
     with open(os.path.join(output_dir, 'data.pkl'), 'wb') as f:
-        pickle.dump(all_features, f)
+        pickle.dump(all_features, f, protocol=pickle.HIGHEST_PROTOCOL)
     
     print("Batch-optimized gait feature extraction completed.\n")
     return output_dir

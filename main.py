@@ -102,32 +102,34 @@ def main_train_code(config):
         d_model = 112
 
 
-    rope = config['training']['rope']
-    heads = config['training']['nhead']
-    layers = config['training']['num_encoder_layers']
+    # rope = config['training']['rope']
+    # heads = config['training']['nhead']
+    # layers = config['training']['num_encoder_layers']
 
-    if 'max_len' in config['training']:
-        max_len = config['training']['max_len']
+    # if 'max_len' in config['training']:
+    #     max_len = config['training']['max_len']
 
-    if 'd_model' in config['training']:
-        d_model = config['training']['d_model']
+    # if 'd_model' in config['training']:
+    #     d_model = config['training']['d_model']
+    training_params = config['training']
 
     # Create model and trainer
     model = SkeletonTransformer(
-        num_joints=20,
-        d_model=d_model,
-        nhead=heads,
-        num_encoder_layers=layers,
-        dim_feedforward=256,
-        dropout=0.2,
-        max_len=max_len,
-        num_classes=164,
-        rope=rope
+        num_joints             = 20,
+        num_classes            = 164,
+        d_model                = training_params.get('d_model',              d_model),
+        nhead                  = training_params.get('nhead',                1),
+        num_encoder_layers     = training_params.get('num_encoder_layers',   1),
+        dim_feedforward        = training_params.get('dim_feedforward',      256),
+        dropout                = training_params.get('dropout',              0.2),
+        max_len                = training_params.get('max_len',              max_len),
+        rope                   = training_params.get('rope',                 False),
+        cls_head_hidden_layers = training_params.get('cls_head_hidden_layers', [])
     )
 
     trainer = None
 
-    if config['training'].get('contrastive', False):
+    if training_params.get('contrastive', False):
 
         contrastive_weight = config['training'].get('contrastive_weight', 0.5)
         trainer = ContSkeletonTransformerTrainer(

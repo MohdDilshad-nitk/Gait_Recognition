@@ -1,15 +1,8 @@
-
 import torch
 import torch.nn as nn
-# import torch.nn.functional as F
-# from torch.optim import Adam
 import numpy as np
-from typing import Tuple
-from datetime import datetime
+from typing import List, Tuple
 
-
-import torch
-import torch.nn as nn
 
 class RotaryPositionalEmbedding(nn.Module):
     def __init__(self, d_model, max_seq_len: int = 5000):
@@ -46,6 +39,7 @@ class RotaryPositionalEmbedding(nn.Module):
 
         return x
 
+
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model: int, max_len: int = 5000):
         super().__init__()
@@ -60,7 +54,6 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x + self.pe[:, :x.size(1)]
-
 
 
 class SkeletonEmbedding(nn.Module):
@@ -98,6 +91,7 @@ class SkeletonTransformer(nn.Module):
         num_classes: int = None,
         max_len: int = 5000,
         rope: bool = False,
+        cls_head_hidden_layers: List[int] = []
     ):
         super().__init__()
 
@@ -122,8 +116,24 @@ class SkeletonTransformer(nn.Module):
 
 
         # Classification head
+        # if num_classes is not None:
+        #     self.classifier = nn.Linear(d_model, num_classes)
+        # else:
+        #     self.classifier = None
+
+        # Classification Head
         if num_classes is not None:
-            self.classifier = nn.Linear(d_model, num_classes)
+            layers = []
+            input_dim = d_model
+            
+            for hidden_dim in cls_head_hidden_layers:
+                layers.append(nn.Linear(input_dim, hidden_dim))
+                layers.append(nn.ReLU())  # Activation function for non-linearity
+                layers.append(nn.Dropout(p=dropout))  # Add dropout for regularization
+                input_dim = hidden_dim
+            
+            layers.append(nn.Linear(input_dim, num_classes))
+            self.classifier = nn.Sequential(*layers)
         else:
             self.classifier = None
 
@@ -134,7 +144,6 @@ class SkeletonTransformer(nn.Module):
     ) -> torch.Tensor:
         # x shape: [batch_size, seq_len, num_joints, 3]
         x = self.embedding(x)  # [batch_size, seq_len, d_model]
-        # print("embeddings shape: ", x.shape)
         x = self.pos_encoder(x)
 
         if attention_mask is not None:

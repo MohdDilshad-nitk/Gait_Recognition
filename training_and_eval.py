@@ -60,7 +60,6 @@ def train_and_eval(config):
 
 
     train_loader, val_loader, test_loader = None, None, None
-    dataset = None
 
     if config['training']['k_fold']:
         train_val_loader, test_loader, train_val_dataset, test_dataset = create_data_loaders(training_data_dir = preprocessed_data_dir, base_data_dir = base_data_dir, is_skeleton = is_skeleton, batch_size=32, return_dataset=True)
@@ -86,48 +85,51 @@ def train_and_eval(config):
         d_model = 112
 
 
-    rope = config['training']['rope']
-    heads = config['training']['nhead']
-    layers = config['training']['num_encoder_layers']
+    # rope = config['training']['rope']
+    # heads = config['training']['nhead']
+    # layers = config['training']['num_encoder_layers']
 
-    if 'max_len' in config['training']:
-        max_len = config['training']['max_len']
+    # if 'max_len' in config['training']:
+    #     max_len = config['training']['max_len']
 
-    if 'd_model' in config['training']:
-        d_model = config['training']['d_model']
+    # if 'd_model' in config['training']:
+    #     d_model = config['training']['d_model']
+
+    training_params = config['training']
 
     # Create model and trainer
     model = SkeletonTransformer(
-        num_joints=20,
-        d_model=d_model,
-        nhead=heads,
-        num_encoder_layers=layers,
-        dim_feedforward=256,
-        dropout=0.2,
-        max_len=max_len,
-        num_classes=164,
-        rope=rope
+        num_joints             = 20,
+        num_classes            = 164,
+        d_model                = training_params.get('d_model',              d_model),
+        nhead                  = training_params.get('nhead',                1),
+        num_encoder_layers     = training_params.get('num_encoder_layers',   1),
+        dim_feedforward        = training_params.get('dim_feedforward',      256),
+        dropout                = training_params.get('dropout',              0.2),
+        max_len                = training_params.get('max_len',              max_len),
+        rope                   = training_params.get('rope',                 False),
+        cls_head_hidden_layers = training_params.get('cls_head_hidden_layers', [])
     )
 
     trainer = None
 
-    if config['training'].get('contrastive', False):
+    if training_params.get('contrastive', False):
 
         contrastive_weight = config['training'].get('contrastive_weight', 0.5)
         trainer = ContSkeletonTransformerTrainer(
-            model=model,
-            train_loader=train_loader,
-            val_loader=val_loader,
-            contrastive_weight=contrastive_weight,
-            save_dir=drive_checkpoint_dir
-        )
+                    model               = model,
+                    train_loader        = train_loader,
+                    val_loader          = val_loader,
+                    contrastive_weight  = contrastive_weight,
+                    save_dir            = drive_checkpoint_dir
+                )
     else:
         trainer = SkeletonTransformerTrainer(
-            model=model,
-            train_loader=train_loader,
-            val_loader=val_loader,
-            save_dir=drive_checkpoint_dir
-        )
+                    model       = model,
+                    train_loader= train_loader,
+                    val_loader  = val_loader,
+                    save_dir    = drive_checkpoint_dir
+                )
 
     print("\n\nCreated model and model trainer...\n\n")
 
@@ -147,15 +149,15 @@ def train_and_eval(config):
     epochs = config['training']['epochs']
     if config['training']['k_fold']:
         trainer.train_k_fold(
-            num_epochs=epochs,
-            k_folds=5,
-            dataset= train_val_dataset,
-            resume_path=latest_checkpoint  # Set to checkpoint path to resume training
+            num_epochs  = epochs,
+            k_folds     = 5,
+            dataset     = train_val_dataset,
+            resume_path = latest_checkpoint  # Set to checkpoint path to resume training
         )
     else:
         trainer.train(
-            num_epochs=epochs,
-            resume_path=latest_checkpoint  # Set to checkpoint path to resume training
+            num_epochs = epochs,
+            resume_path= latest_checkpoint  # Set to checkpoint path to resume training
         )
 
     # Save best model

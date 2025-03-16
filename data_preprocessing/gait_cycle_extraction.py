@@ -128,7 +128,7 @@ def extract_gait_cycles_from_csv(input_dir, output_dir):
   metadata_df = pd.DataFrame(metadata_list)
   metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
 
-  del final_cycles
+  # del final_cycles
   print("gait cycle extraction completed...\n\n")
 
   return output_dir
@@ -158,7 +158,7 @@ def extract_gait_cycles_from_csv_iigc(input_dir, output_dir):
   metadata_df = pd.DataFrame(metadata_list)
   metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
 
-  del final_cycles
+  # del final_cycles
   print("gait cycle extraction completed...\n\n")
   return output_dir
 

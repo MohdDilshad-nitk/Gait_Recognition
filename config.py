@@ -2,6 +2,7 @@
 config = {
     
     'base_dir': '/kaggle/working/Code', #for colab : '/content/Code'
+    # 'last_preprocessing' : 'gait_cycles_iigc',
     'preprocess' : ['transform',
                     'augment',
                     'gait_cycles',

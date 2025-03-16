@@ -135,7 +135,7 @@ def extract_gait_cycles_from_csv(input_dir, output_dir):
 
 def extract_gait_cycles_from_csv_iigc(input_dir, output_dir):
 
-  print("\n\nStarting gait cycle extraction...")
+  print("\n\nStarting inter intra gait cycle extraction...")
   print("input directory: ", input_dir, ", output directory: ", output_dir)
 
  
@@ -159,7 +159,7 @@ def extract_gait_cycles_from_csv_iigc(input_dir, output_dir):
   metadata_df.to_csv(output_dir + '/metadata.csv', index=False)
 
   # del final_cycles
-  print("gait cycle extraction completed...\n\n")
+  print("inter intra gait cycle extraction completed...\n\n")
   return output_dir
 
 

@@ -54,9 +54,9 @@ def preprocessor(config):
         'event_features': gait_event_features_dir
     }
 
-
-    # preprocessing
-    prev_dir = raw_data_dir
+    last_preprocessing = config.get('last_preprocessing', 'raw')
+    prev_dir = output_dirs.get(last_preprocessing, raw_data_dir)
+    # prev_dir = raw_data_dir
     for func in preprocessing:
         prev_dir = preprocessing_funcs[func](prev_dir,output_dirs[func])
 

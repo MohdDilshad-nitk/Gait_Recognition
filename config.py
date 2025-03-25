@@ -21,7 +21,8 @@ config = {
         'contrastive' : False,
         # 'contrastive_weight' : 0.5,
         'k_fold' : False,
-        'epochs' : 60
+        'epochs' : 60,
+    #    'cls_head_hidden_layers': [256, 128]
     },
 
 }

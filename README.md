@@ -36,12 +36,13 @@ drive.mount('/content/drive')
 ```
 import sys
 
-!cp -r /kaggle/input/<dataset_name>/Gait_Recognition-main /kaggle/working/
-sys.path.insert(1, '/kaggle/working/Gait_Recognition-main')
+!cp -r /kaggle/input/gait-final-v3/Gait_Recognition-main /kaggle/working/
+!mv /kaggle/working/Gait_Recognition-main /kaggle/working/Code
+sys.path.insert(1, '/kaggle/working/Code')
 
 !gdown 1EjEb53EEK9RZKND5dfF8TvoCrFUxqC7r -O /content/data.zip
-!mkdir /kaggle/working/Gait_Recognition-main/data
-!unzip -q /content/data.zip -d /kaggle/working/Gait_Recognition-main/data
+!mkdir /kaggle/working/Code/data
+!unzip -q /content/data.zip -d /kaggle/working/Code/data
 !rm -rf /content/data.zip
 
 ```
@@ -125,23 +126,28 @@ The config object looks like
 ```
 config = {
     
-    'base_dir': '/kaggle/working/Gait_Recognition-main', 
+    'base_dir': '/kaggle/working/Code', #for colab : '/content/Code'
+    # 'last_preprocessing' : 'gait_cycles_iigc',
     'preprocess' : ['transform',
                     'augment',
                     'gait_cycles',
+                    #gait_cycles_iigc,
                     'gait_features',
-                    'gait_event_features'
-                    ],
+                    'event_features'],
 
-    'drive_checkpoint_path' : '/kaggle/working/trained_gait_model_checkpoints',
+    'drive_checkpoint_path' : '/content/drive/My Drive/trained_gait_model_checkpoints',
 
     'training' : {
         'nhead':1,
         'num_encoder_layers':1,
+        # 'max_len' : 2048,
+        # 'd_model : 256,
         'rope' : False,
         'contrastive' : False,
+        # 'contrastive_weight' : 0.5,
         'k_fold' : False,
-        'epochs' : 60
+        'epochs' : 60,
+    #    'cls_head_hidden_layers': [256, 128]
     },
 
 }
